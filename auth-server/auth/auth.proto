@@ -2,14 +2,19 @@ syntax = "proto3";
 
 option go_package = "./";
 
-service rep_pq {
-    rpc Authenticate (Request) returns (Reply) {}
+service req_pq {
+    rpc RequestPQ (Request) returns (Response) {}
 }
 
 message Request {
-    string name = 1;
+    string nonce = 1; // max_width -> 20 
+    int64 message_id = 2; // even and greater than zero
 }
 
-message Reply {
-    string response = 1;
+message Response {
+    string nonce = 1; // the exact nonce from the clients request
+    string server_nonce = 2; // max_width -> 20
+    int64 message_id = 3; // odd and greater than zero
+    int64 p = 4; // prime number
+    int64 g = 5; // primitive root modulo of p
 }

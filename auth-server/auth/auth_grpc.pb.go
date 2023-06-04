@@ -19,89 +19,89 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	RepPq_Authenticate_FullMethodName = "/rep_pq/Authenticate"
+	ReqPq_RequestPQ_FullMethodName = "/req_pq/RequestPQ"
 )
 
-// RepPqClient is the client API for RepPq service.
+// ReqPqClient is the client API for ReqPq service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type RepPqClient interface {
-	Authenticate(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Reply, error)
+type ReqPqClient interface {
+	RequestPQ(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
 }
 
-type repPqClient struct {
+type reqPqClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewRepPqClient(cc grpc.ClientConnInterface) RepPqClient {
-	return &repPqClient{cc}
+func NewReqPqClient(cc grpc.ClientConnInterface) ReqPqClient {
+	return &reqPqClient{cc}
 }
 
-func (c *repPqClient) Authenticate(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Reply, error) {
-	out := new(Reply)
-	err := c.cc.Invoke(ctx, RepPq_Authenticate_FullMethodName, in, out, opts...)
+func (c *reqPqClient) RequestPQ(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, ReqPq_RequestPQ_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// RepPqServer is the server API for RepPq service.
-// All implementations must embed UnimplementedRepPqServer
+// ReqPqServer is the server API for ReqPq service.
+// All implementations must embed UnimplementedReqPqServer
 // for forward compatibility
-type RepPqServer interface {
-	Authenticate(context.Context, *Request) (*Reply, error)
-	mustEmbedUnimplementedRepPqServer()
+type ReqPqServer interface {
+	RequestPQ(context.Context, *Request) (*Response, error)
+	mustEmbedUnimplementedReqPqServer()
 }
 
-// UnimplementedRepPqServer must be embedded to have forward compatible implementations.
-type UnimplementedRepPqServer struct {
+// UnimplementedReqPqServer must be embedded to have forward compatible implementations.
+type UnimplementedReqPqServer struct {
 }
 
-func (UnimplementedRepPqServer) Authenticate(context.Context, *Request) (*Reply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
+func (UnimplementedReqPqServer) RequestPQ(context.Context, *Request) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestPQ not implemented")
 }
-func (UnimplementedRepPqServer) mustEmbedUnimplementedRepPqServer() {}
+func (UnimplementedReqPqServer) mustEmbedUnimplementedReqPqServer() {}
 
-// UnsafeRepPqServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to RepPqServer will
+// UnsafeReqPqServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ReqPqServer will
 // result in compilation errors.
-type UnsafeRepPqServer interface {
-	mustEmbedUnimplementedRepPqServer()
+type UnsafeReqPqServer interface {
+	mustEmbedUnimplementedReqPqServer()
 }
 
-func RegisterRepPqServer(s grpc.ServiceRegistrar, srv RepPqServer) {
-	s.RegisterService(&RepPq_ServiceDesc, srv)
+func RegisterReqPqServer(s grpc.ServiceRegistrar, srv ReqPqServer) {
+	s.RegisterService(&ReqPq_ServiceDesc, srv)
 }
 
-func _RepPq_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ReqPq_RequestPQ_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RepPqServer).Authenticate(ctx, in)
+		return srv.(ReqPqServer).RequestPQ(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RepPq_Authenticate_FullMethodName,
+		FullMethod: ReqPq_RequestPQ_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RepPqServer).Authenticate(ctx, req.(*Request))
+		return srv.(ReqPqServer).RequestPQ(ctx, req.(*Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// RepPq_ServiceDesc is the grpc.ServiceDesc for RepPq service.
+// ReqPq_ServiceDesc is the grpc.ServiceDesc for ReqPq service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var RepPq_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "rep_pq",
-	HandlerType: (*RepPqServer)(nil),
+var ReqPq_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "req_pq",
+	HandlerType: (*ReqPqServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Authenticate",
-			Handler:    _RepPq_Authenticate_Handler,
+			MethodName: "RequestPQ",
+			Handler:    _ReqPq_RequestPQ_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

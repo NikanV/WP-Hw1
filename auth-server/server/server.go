@@ -11,17 +11,17 @@ import (
 	"google.golang.org/grpc"
 )
 
-type repPqServer struct {
-	pb.UnimplementedRepPqServer
+type reqPqServer struct {
+	pb.UnimplementedReqPqServer
 }
 
-func (a *repPqServer) Authenticate(context.Context, *pb.Request) (*pb.Reply, error) {
-	fmt.Println("omad")
-	return &pb.Reply{Response: "daddy"}, nil
+func (c *reqPqServer) RequestPQ(ctx context.Context, in *pb.Request) (*pb.Response, error) {
+	fmt.Println("Got the request")
+	return &pb.Response{Nonce: in.GetNonce(), ServerNonce: "server_nonce", MessageId: in.GetMessageId() + 1, P: 23, G: 5}, nil
 }
 
-func newServer() *repPqServer {
-	s := &repPqServer{}
+func newServer() *reqPqServer {
+	s := &reqPqServer{}
 	return s
 }
 
@@ -31,13 +31,17 @@ var (
 
 func main() {
 	flag.Parse()
+
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
+	} else {
+		fmt.Println("listening on port: ", *port)
 	}
-	fmt.Println("Listening on port: ", *port)
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterRepPqServer(grpcServer, newServer())
-	grpcServer.Serve(lis)
+	pb.RegisterReqPqServer(grpcServer, newServer())
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

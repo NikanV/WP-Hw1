@@ -10,8 +10,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func sendAsadi(client pb.RepPqClient) {
-	response, err := client.Authenticate(context.Background(), &pb.Request{Name: "asadi"})
+func makeRequest(client pb.ReqPqClient) {
+	response, err := client.RequestPQ(context.Background(), &pb.Request{Nonce: "client_nonce", MessageId: 4})
 	if err != nil {
 		log.Fatalf("failed to authenticate: %v", err)
 	}
@@ -32,7 +32,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := pb.NewRepPqClient(conn)
+	client := pb.NewReqPqClient(conn)
 
-	sendAsadi(client)
+	makeRequest(client)
 }
