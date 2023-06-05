@@ -27,20 +27,19 @@ func newPQServer() *reqPqServer {
 
 ////////////////////////////////second service
 
-type  reqDHParamsServer struct {
+type reqDHParamsServer struct {
 	pb.UnimplementedReq_DH_ParamsServer
 }
 
 func (c *reqDHParamsServer) RequestDHparams(ctx context.Context, in *pb.DHRequest) (*pb.DHResponse, error) {
 	fmt.Println("got the public key")
-	return &pb.DHResponse{Nonce: in.GetNonce() , ServerNonce: in.GetServerNonce() , MessageId: in.GetMessageId() + 1 , B: 22} , nil
+	return &pb.DHResponse{Nonce: in.GetNonce(), ServerNonce: in.GetServerNonce(), MessageId: in.GetMessageId() + 1, B: 22}, nil
 }
 
 func newDHServer() *reqDHParamsServer {
 	s := &reqDHParamsServer{}
 	return s
 }
-
 
 var (
 	port = flag.Int("port", 8080, "The server port")
