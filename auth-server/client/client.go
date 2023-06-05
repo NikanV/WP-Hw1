@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func makePQRequest(client pb.Req_PQClient) {
+func makePQRequest(client pb.AuthenticatorClient) {
 	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: "client_nonce", MessageId: 4})
 	if err != nil {
 		log.Fatalf("failed to authenticate: %v", err)
@@ -19,8 +19,8 @@ func makePQRequest(client pb.Req_PQClient) {
 	log.Println(response)
 }
 
-func makeDHRequest(client pb.Req_DH_ParamsClient) {
-	response, err := client.RequestDHparams(context.Background(), &pb.DHRequest{Nonce: "pp", ServerNonce: "tt" , MessageId: 6 , A: 2})
+func makeDHRequest(client pb.AuthenticatorClient) {
+	response, err := client.RequestDHParams(context.Background(), &pb.DHRequest{Nonce: "pp", ServerNonce: "tt", MessageId: 6, A: 2})
 	if err != nil {
 		log.Fatalf("failed to send key: %v", err)
 	}
@@ -29,7 +29,7 @@ func makeDHRequest(client pb.Req_DH_ParamsClient) {
 }
 
 var (
-	serverAddr = flag.String("addr", "localhost:8080", "this is the server address")
+	serverAddr = flag.String("addr", "localhost:5052", "this is the server address")
 )
 
 func main() {
@@ -41,10 +41,8 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := pb.NewReq_PQClient(conn)
-	client2 := pb.NewReq_DH_ParamsClient(conn)
+	client := pb.NewAuthenticatorClient(conn)
 
 	makePQRequest(client)
-	makeDHRequest(client2)
-	
+	makeDHRequest(client)
 }
