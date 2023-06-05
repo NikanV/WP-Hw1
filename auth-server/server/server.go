@@ -8,8 +8,8 @@ import (
 	"log"
 	"net"
 	"errors"
-
 	"google.golang.org/grpc"
+	tools "tools"
 )
 
 type reqPqServer struct {
@@ -26,7 +26,7 @@ func (c *reqPqServer) RequestPQ(ctx context.Context, in *pb.PQRequest) (*pb.PQRe
 		return nil , errors.New("PQRequest : wrong message_id format")
 	}
 	fmt.Println(in)
-	return &pb.PQResponse{Nonce: in.GetNonce(), ServerNonce: "server_nonce", MessageId: in.GetMessageId() + 1, P: 23, G: 5}, nil
+	return &pb.PQResponse{Nonce: in.GetNonce(), ServerNonce: tools.RandomString(20) , MessageId: in.GetMessageId() + 1, P: 23, G: 5}, nil
 }
 
 func newPQServer() *reqPqServer {
@@ -50,12 +50,15 @@ func newDHServer() *reqDHParamsServer {
 	return s
 }
 
+///////////////////////////////////
+
 
 var (
 	port = flag.Int("port", 8080, "The server port")
 )
 
 func main() {
+
 	flag.Parse()
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
