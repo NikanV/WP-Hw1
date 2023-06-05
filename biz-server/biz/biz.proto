@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = "./";
+
+
+service Get_Users{
+  rpc GetUsers (Get_Users_Req) returns (Get_Users_Resp) {}
+  rpc Get_User_Sql_Inj (Get_User_Sql_Inj_Req) returns (Get_Users_Resp) {}
+
+}
+
+message Get_Users_Req{
+  optional int64 user_id = 1; // user's id
+  string auth_key = 3; // user's authentication key
+  int64 message_id = 4; // even and greater than zero
+}
+
+message Get_User_Sql_Inj_Req{
+  optional string user_id = 1; // user's id
+  string auth_key = 2; // user's authentication key
+  int64 message_id = 3; // even and greater than zero
+}
+
+message Get_Users_Resp{
+  repeated string users = 1; // array of users
+  int64 message_id = 2; // odd and greater than zero
+}
