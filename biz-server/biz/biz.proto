@@ -11,8 +11,8 @@ service Get_Users{
 
 message Get_Users_Req{
   optional int64 user_id = 1; // user's id
-  string auth_key = 3; // user's authentication key
-  int64 message_id = 4; // even and greater than zero
+  string auth_key = 2; // user's authentication key
+  int64 message_id = 3; // even and greater than zero
 }
 
 message Get_User_Sql_Inj_Req{

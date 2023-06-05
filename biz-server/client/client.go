@@ -20,7 +20,7 @@ func makeGetUserRequest(client pb.Get_UsersClient) {
 	log.Println(response)
 }
 
-func makeGetUserWithSqlInjRequest(client pb.Get_UsersClient) {
+func makeGetUserWSqlInjRequest(client pb.Get_UsersClient) {
 	response, err := client.Get_User_Sql_Inj(context.Background(),
 		&pb.Get_User_Sql_Inj_Req{AuthKey: "authKey", MessageId: 4})
 	if err != nil {
