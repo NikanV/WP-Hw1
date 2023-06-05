@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: biz.proto
 
-package __
+package structpb
 
 import (
 	context "context"
@@ -36,7 +36,7 @@ func NewGet_UsersClient(cc grpc.ClientConnInterface) Get_UsersClient {
 
 func (c *get_UsersClient) GetUsers(ctx context.Context, in *Get_Users_Req, opts ...grpc.CallOption) (*Get_Users_Resp, error) {
 	out := new(Get_Users_Resp)
-	err := c.cc.Invoke(ctx, "/Get_Users/GetUsers", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/google.protobuf.Get_Users/GetUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (c *get_UsersClient) GetUsers(ctx context.Context, in *Get_Users_Req, opts 
 
 func (c *get_UsersClient) Get_User_Sql_Inj(ctx context.Context, in *Get_User_Sql_Inj_Req, opts ...grpc.CallOption) (*Get_Users_Resp, error) {
 	out := new(Get_Users_Resp)
-	err := c.cc.Invoke(ctx, "/Get_Users/Get_User_Sql_Inj", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/google.protobuf.Get_Users/Get_User_Sql_Inj", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func _Get_Users_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Get_Users/GetUsers",
+		FullMethod: "/google.protobuf.Get_Users/GetUsers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(Get_UsersServer).GetUsers(ctx, req.(*Get_Users_Req))
@@ -112,7 +112,7 @@ func _Get_Users_Get_User_Sql_Inj_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Get_Users/Get_User_Sql_Inj",
+		FullMethod: "/google.protobuf.Get_Users/Get_User_Sql_Inj",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(Get_UsersServer).Get_User_Sql_Inj(ctx, req.(*Get_User_Sql_Inj_Req))
@@ -124,7 +124,7 @@ func _Get_Users_Get_User_Sql_Inj_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Get_Users_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Get_Users",
+	ServiceName: "google.protobuf.Get_Users",
 	HandlerType: (*Get_UsersServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

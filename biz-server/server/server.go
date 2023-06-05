@@ -17,10 +17,10 @@ var (
 	port  = flag.Int("port", 5062, "The server port")
 	db    *gorm.DB
 	err   error
-	users = []USERS{
-		{name: "nikan", family: "vsi", id: 5303, age: 19, sex: "male", createdAt: time.Now()},
-		{name: "nima", family: "enigma", id: 5263, age: 19, sex: "male", createdAt: time.Now()},
-		{name: "alireza", family: "kaz", id: 9649, age: 19, sex: "male", createdAt: time.Now()},
+	users = []*pb.USERS{
+		{Name: "nikan", Family: "vsi", Id: 5303, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
+		{Name: "nima", Family: "enigma", Id: 5263, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
+		{Name: "alireza", Family: "kaz", Id: 9649, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
 	}
 )
 
@@ -32,15 +32,15 @@ const (
 	db_ip   = "postgres"
 )
 
-type USERS struct {
-	gorm.Model
-	name      string    `json:"name"`
-	family    string    `jason:"family"`
-	id        int       `json:"id"`
-	age       int       `json:"age"`
-	sex       string    `json:"sex"`
-	createdAt time.Time `json:"createdAt"`
-}
+//type USERS struct {
+//	gorm.Model
+//	name      string `json:"name"`
+//	family    string `jason:"family"`
+//	id        int    `json:"id"`
+//	age       int    `json:"age"`
+//	sex       string `json:"sex"`
+//	createdAt string `json:"createdAt"`
+//}
 
 type getUserServer struct {
 	pb.UnimplementedGet_UsersServer
@@ -49,13 +49,13 @@ type getUserServer struct {
 func (c *getUserServer) GetUsers(ctx context.Context,
 	in *pb.Get_Users_Req) (*pb.Get_Users_Resp, error) {
 	fmt.Println("Get user request received")
-	var usr []USERS
-	if in.UserId != nil {
-		var current USERS
+	var usr []*pb.USERS
+	if &in.UserId != nil {
+		var current *pb.USERS
 		db.First(&current, in.UserId)
 		usr = append(usr, current)
 	} else {
-		var allUsers []USERS
+		var allUsers []*pb.USERS
 		db.Find(&allUsers)
 		minOf := 99
 		if len(allUsers) < 99 {
@@ -63,19 +63,12 @@ func (c *getUserServer) GetUsers(ctx context.Context,
 		}
 		usr = allUsers[0:minOf]
 	}
-	//return &pb.Get_Users_Resp{Users: usr, MessageId: in.GetMessageId() + 1}, nil
-	return nil, nil
-	//users := postgres get user with userid s
-	// if userid is nil return top 100 users
-	// check if user's auth key is similar to input's auth key
-	//return nil, nil
+	return &pb.Get_Users_Resp{Users: usr, MessageId: in.GetMessageId() + 1}, nil
 }
 
 func newGetUserServer() *getUserServer {
 	return &getUserServer{}
 }
-
-////////////////////////////////second service
 
 func (c *getUserServer) GetUserWSqlInj(ctx context.Context,
 	in *pb.Get_User_Sql_Inj_Req) (*pb.Get_Users_Resp, error) {
@@ -98,10 +91,12 @@ func main() {
 	db, err := gorm.Open("postgres", psqlconn)
 
 	checkError(err)
+
 	fmt.Println("connected to database!")
+
 	defer db.Close()
 
-	db.AutoMigrate(&USERS{})
+	db.AutoMigrate(pb.USERS{})
 
 	for i := range users {
 		db.Create(&users[i])
@@ -121,6 +116,5 @@ func main() {
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
-		defer db.Close()
 	}
 }
