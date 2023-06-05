@@ -9,9 +9,10 @@ import (
 	"log"
 )
 
-func makeGetUserRequest(client pb.Get_UsersClient) {
+func makeGetUserReq(client pb.Get_UsersClient) {
 	response, err := client.GetUsers(context.Background(),
 		&pb.Get_Users_Req{AuthKey: "authKey", MessageId: 4})
+
 	// check userid
 	// check authKey
 	if err != nil {
@@ -20,7 +21,7 @@ func makeGetUserRequest(client pb.Get_UsersClient) {
 	log.Println(response)
 }
 
-func makeGetUserWSqlInjRequest(client pb.Get_UsersClient) {
+func makeGetUserWSqlInjReq(client pb.Get_UsersClient) {
 	response, err := client.Get_User_Sql_Inj(context.Background(),
 		&pb.Get_User_Sql_Inj_Req{AuthKey: "authKey", MessageId: 4})
 	if err != nil {
@@ -30,7 +31,7 @@ func makeGetUserWSqlInjRequest(client pb.Get_UsersClient) {
 }
 
 var (
-	serverAddr = flag.String("addr", "localhost:8080", "this is the server address")
+	serverAddr = flag.String("addr", "localhost:5062", "this is the server address")
 )
 
 func main() {
@@ -43,6 +44,8 @@ func main() {
 	defer conn.Close()
 
 	client := pb.NewGet_UsersClient(conn)
+	client2 := pb.NewGet_UsersClient(conn)
 
-	makeGetUserRequest(client)
+	makeGetUserReq(client)
+	makeGetUserReq(client2)
 }
