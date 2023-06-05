@@ -1,7 +1,6 @@
 package main
 
 import (
-<<<<<<< HEAD
 	pb "biz-server/biz"
 	"context"
 	"flag"
@@ -57,11 +56,4 @@ func main() {
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
-=======
-	"fmt"
-)
-
-func main() {
-	fmt.Println("hello world!")
->>>>>>> nikan
 }
