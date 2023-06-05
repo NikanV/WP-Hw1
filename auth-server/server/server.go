@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"errors"
 
 	"google.golang.org/grpc"
 )
@@ -16,7 +17,15 @@ type reqPqServer struct {
 }
 
 func (c *reqPqServer) RequestPQ(ctx context.Context, in *pb.PQRequest) (*pb.PQResponse, error) {
-	fmt.Println("Got the request")
+	if(len(in.GetNonce()) != 20){
+		fmt.Println("PQRequest : wrong nonce format")
+		return nil , errors.New("PQRequest : wrong nonce format")
+	}
+	if(in.GetMessageId() <= 0 || in.GetMessageId() % 2 == 1){
+		fmt.Println("PQRequest : wrong message_id format")
+		return nil , errors.New("PQRequest : wrong message_id format")
+	}
+	fmt.Println(in)
 	return &pb.PQResponse{Nonce: in.GetNonce(), ServerNonce: "server_nonce", MessageId: in.GetMessageId() + 1, P: 23, G: 5}, nil
 }
 
@@ -25,7 +34,7 @@ func newPQServer() *reqPqServer {
 	return s
 }
 
-////////////////////////////////second service
+////////////////////////////////DH service
 
 type  reqDHParamsServer struct {
 	pb.UnimplementedReq_DH_ParamsServer

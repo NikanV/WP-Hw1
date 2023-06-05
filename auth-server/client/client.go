@@ -11,9 +11,9 @@ import (
 )
 
 func makePQRequest(client pb.Req_PQClient) {
-	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: "client_nonce", MessageId: 4})
+	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: "client_nonce11111111", MessageId: 4})
 	if err != nil {
-		log.Fatalf("failed to authenticate: %v", err)
+		log.Fatalf("%v", err)
 	}
 
 	log.Println(response)
@@ -22,7 +22,7 @@ func makePQRequest(client pb.Req_PQClient) {
 func makeDHRequest(client pb.Req_DH_ParamsClient) {
 	response, err := client.RequestDHparams(context.Background(), &pb.DHRequest{Nonce: "pp", ServerNonce: "tt" , MessageId: 6 , A: 2})
 	if err != nil {
-		log.Fatalf("failed to send key: %v", err)
+		log.Fatalf("error: %v", err)
 	}
 
 	log.Println(response)
