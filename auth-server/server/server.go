@@ -48,8 +48,6 @@ var (
 func main() {
 	flag.Parse()
 
-	initRedisClient()
-
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
