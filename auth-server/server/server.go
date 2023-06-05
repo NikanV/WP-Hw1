@@ -8,36 +8,37 @@ import (
 	"log"
 	"net"
 
-	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 )
 
 type reqPqServer struct {
-	pb.UnimplementedReqPqServer
+	pb.UnimplementedReq_PQServer
 }
 
-func (c *reqPqServer) RequestPQ(ctx context.Context, in *pb.Request) (*pb.Response, error) {
+func (c *reqPqServer) RequestPQ(ctx context.Context, in *pb.PQRequest) (*pb.PQResponse, error) {
 	fmt.Println("Got the request")
-	return &pb.Response{Nonce: in.GetNonce(), ServerNonce: "server_nonce", MessageId: in.GetMessageId() + 1, P: 23, G: 5}, nil
+	return &pb.PQResponse{Nonce: in.GetNonce(), ServerNonce: "server_nonce", MessageId: in.GetMessageId() + 1, P: 23, G: 5}, nil
 }
 
-func newServer() *reqPqServer {
+func newPQServer() *reqPqServer {
 	s := &reqPqServer{}
 	return s
 }
 
-func initRedisClient() {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
+////////////////////////////////second service
 
-	if err := redisClient.Set(context.Background(), "key", "value", 0).Err(); err != nil {
-		log.Fatalf("failed to set key: %v", err)
-	} else {
-		fmt.Println("successfully set key on redis")
-	}
+type reqDHParamsServer struct {
+	pb.UnimplementedReq_DH_ParamsServer
+}
+
+func (c *reqDHParamsServer) RequestDHparams(ctx context.Context, in *pb.DHRequest) (*pb.DHResponse, error) {
+	fmt.Println("got the public key")
+	return &pb.DHResponse{Nonce: in.GetNonce(), ServerNonce: in.GetServerNonce(), MessageId: in.GetMessageId() + 1, B: 22}, nil
+}
+
+func newDHServer() *reqDHParamsServer {
+	s := &reqDHParamsServer{}
+	return s
 }
 
 var (
@@ -57,7 +58,8 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterReqPqServer(grpcServer, newServer())
+	pb.RegisterReq_PQServer(grpcServer, newPQServer())
+	pb.RegisterReq_DH_ParamsServer(grpcServer, newDHServer())
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
