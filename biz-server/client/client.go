@@ -1,6 +1,7 @@
 package main
 
 import (
+<<<<<<< HEAD
 	pb "biz-server/biz"
 	"context"
 	"flag"
@@ -46,4 +47,11 @@ func main() {
 
 	makeGetUserRequest(client)
 
+=======
+	"fmt"
+)
+
+func main() {
+	fmt.Println("hello world!")
+>>>>>>> nikan
 }

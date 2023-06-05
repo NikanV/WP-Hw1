@@ -1,6 +1,7 @@
 module biz-server
 
 go 1.20
+<<<<<<< HEAD
 
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -12,3 +13,5 @@ require (
 	google.golang.org/grpc v1.55.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
+=======
+>>>>>>> nikan

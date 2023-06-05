@@ -19,89 +19,126 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ReqPq_RequestPQ_FullMethodName = "/req_pq/RequestPQ"
+	Authenticator_RequestPQ_FullMethodName       = "/Authenticator/RequestPQ"
+	Authenticator_RequestDHParams_FullMethodName = "/Authenticator/RequestDHParams"
 )
 
-// ReqPqClient is the client API for ReqPq service.
+// AuthenticatorClient is the client API for Authenticator service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ReqPqClient interface {
-	RequestPQ(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+type AuthenticatorClient interface {
+	RequestPQ(ctx context.Context, in *PQRequest, opts ...grpc.CallOption) (*PQResponse, error)
+	RequestDHParams(ctx context.Context, in *DHRequest, opts ...grpc.CallOption) (*DHResponse, error)
 }
 
-type reqPqClient struct {
+type authenticatorClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewReqPqClient(cc grpc.ClientConnInterface) ReqPqClient {
-	return &reqPqClient{cc}
+func NewAuthenticatorClient(cc grpc.ClientConnInterface) AuthenticatorClient {
+	return &authenticatorClient{cc}
 }
 
-func (c *reqPqClient) RequestPQ(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	err := c.cc.Invoke(ctx, ReqPq_RequestPQ_FullMethodName, in, out, opts...)
+func (c *authenticatorClient) RequestPQ(ctx context.Context, in *PQRequest, opts ...grpc.CallOption) (*PQResponse, error) {
+	out := new(PQResponse)
+	err := c.cc.Invoke(ctx, Authenticator_RequestPQ_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ReqPqServer is the server API for ReqPq service.
-// All implementations must embed UnimplementedReqPqServer
+func (c *authenticatorClient) RequestDHParams(ctx context.Context, in *DHRequest, opts ...grpc.CallOption) (*DHResponse, error) {
+	out := new(DHResponse)
+	err := c.cc.Invoke(ctx, Authenticator_RequestDHParams_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AuthenticatorServer is the server API for Authenticator service.
+// All implementations must embed UnimplementedAuthenticatorServer
 // for forward compatibility
-type ReqPqServer interface {
-	RequestPQ(context.Context, *Request) (*Response, error)
-	mustEmbedUnimplementedReqPqServer()
+type AuthenticatorServer interface {
+	RequestPQ(context.Context, *PQRequest) (*PQResponse, error)
+	RequestDHParams(context.Context, *DHRequest) (*DHResponse, error)
+	mustEmbedUnimplementedAuthenticatorServer()
 }
 
-// UnimplementedReqPqServer must be embedded to have forward compatible implementations.
-type UnimplementedReqPqServer struct {
+// UnimplementedAuthenticatorServer must be embedded to have forward compatible implementations.
+type UnimplementedAuthenticatorServer struct {
 }
 
-func (UnimplementedReqPqServer) RequestPQ(context.Context, *Request) (*Response, error) {
+func (UnimplementedAuthenticatorServer) RequestPQ(context.Context, *PQRequest) (*PQResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestPQ not implemented")
 }
-func (UnimplementedReqPqServer) mustEmbedUnimplementedReqPqServer() {}
+func (UnimplementedAuthenticatorServer) RequestDHParams(context.Context, *DHRequest) (*DHResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestDHParams not implemented")
+}
+func (UnimplementedAuthenticatorServer) mustEmbedUnimplementedAuthenticatorServer() {}
 
-// UnsafeReqPqServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ReqPqServer will
+// UnsafeAuthenticatorServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuthenticatorServer will
 // result in compilation errors.
-type UnsafeReqPqServer interface {
-	mustEmbedUnimplementedReqPqServer()
+type UnsafeAuthenticatorServer interface {
+	mustEmbedUnimplementedAuthenticatorServer()
 }
 
-func RegisterReqPqServer(s grpc.ServiceRegistrar, srv ReqPqServer) {
-	s.RegisterService(&ReqPq_ServiceDesc, srv)
+func RegisterAuthenticatorServer(s grpc.ServiceRegistrar, srv AuthenticatorServer) {
+	s.RegisterService(&Authenticator_ServiceDesc, srv)
 }
 
-func _ReqPq_RequestPQ_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+func _Authenticator_RequestPQ_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PQRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ReqPqServer).RequestPQ(ctx, in)
+		return srv.(AuthenticatorServer).RequestPQ(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ReqPq_RequestPQ_FullMethodName,
+		FullMethod: Authenticator_RequestPQ_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReqPqServer).RequestPQ(ctx, req.(*Request))
+		return srv.(AuthenticatorServer).RequestPQ(ctx, req.(*PQRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ReqPq_ServiceDesc is the grpc.ServiceDesc for ReqPq service.
+func _Authenticator_RequestDHParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DHRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticatorServer).RequestDHParams(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Authenticator_RequestDHParams_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticatorServer).RequestDHParams(ctx, req.(*DHRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Authenticator_ServiceDesc is the grpc.ServiceDesc for Authenticator service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ReqPq_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "req_pq",
-	HandlerType: (*ReqPqServer)(nil),
+var Authenticator_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "Authenticator",
+	HandlerType: (*AuthenticatorServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "RequestPQ",
-			Handler:    _ReqPq_RequestPQ_Handler,
+			Handler:    _Authenticator_RequestPQ_Handler,
+		},
+		{
+			MethodName: "RequestDHParams",
+			Handler:    _Authenticator_RequestDHParams_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

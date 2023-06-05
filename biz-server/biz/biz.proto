@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 option go_package = "./";
+<<<<<<< HEAD
 
 
 service Get_Users{
@@ -25,3 +26,5 @@ message Get_Users_Resp{
   repeated string users = 1; // array of users
   int64 message_id = 2; // odd and greater than zero
 }
+=======
+>>>>>>> nikan

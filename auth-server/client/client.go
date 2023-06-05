@@ -10,8 +10,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func makeRequest(client pb.ReqPqClient) {
-	response, err := client.RequestPQ(context.Background(), &pb.Request{Nonce: "client_nonce", MessageId: 4})
+func makePQRequest(client pb.AuthenticatorClient) {
+	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: "client_nonce", MessageId: 4})
 	if err != nil {
 		log.Fatalf("failed to authenticate: %v", err)
 	}
@@ -19,8 +19,17 @@ func makeRequest(client pb.ReqPqClient) {
 	log.Println(response)
 }
 
+func makeDHRequest(client pb.AuthenticatorClient) {
+	response, err := client.RequestDHParams(context.Background(), &pb.DHRequest{Nonce: "pp", ServerNonce: "tt", MessageId: 6, A: 2})
+	if err != nil {
+		log.Fatalf("failed to send key: %v", err)
+	}
+
+	log.Println(response)
+}
+
 var (
-	serverAddr = flag.String("addr", "localhost:8080", "this is the server address")
+	serverAddr = flag.String("addr", "localhost:5052", "this is the server address")
 )
 
 func main() {
@@ -32,7 +41,8 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := pb.NewReqPqClient(conn)
+	client := pb.NewAuthenticatorClient(conn)
 
-	makeRequest(client)
+	makePQRequest(client)
+	makeDHRequest(client)
 }
