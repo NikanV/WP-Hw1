@@ -29,7 +29,7 @@ const (
 	db_port = 5432
 	db_user = "postgres"
 	db_pass = "postgres"
-	db_ip   = "postgres"
+	db_name = "postgres"
 )
 
 //type USERS struct {
@@ -86,7 +86,7 @@ func checkError(err error) {
 
 func main() {
 	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		db_host, db_port, db_user, db_pass, db_ip)
+		db_host, db_port, db_user, db_pass, db_name)
 
 	db, err := gorm.Open("postgres", psqlconn)
 
@@ -101,6 +101,10 @@ func main() {
 	for i := range users {
 		db.Create(&users[i])
 	}
+
+	//var allUsers []*pb.USERS
+	//db.Find(&allUsers)
+	//fmt.Println(allUsers)
 
 	flag.Parse()
 
