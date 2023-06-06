@@ -3,13 +3,15 @@ package main
 import (
 	pb "auth-server/auth"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"net"
-	"errors"
-	"google.golang.org/grpc"
 	tools "tools"
+
+	"google.golang.org/grpc"
 )
 
 type authServer struct {
@@ -17,34 +19,50 @@ type authServer struct {
 }
 
 func (c *authServer) RequestPQ(ctx context.Context, in *pb.PQRequest) (*pb.PQResponse, error) {
-	if(len(in.GetNonce()) != 20){
-		fmt.Println("PQRequest : wrong nonce format")
-		return nil , errors.New("PQRequest : wrong nonce format")
-	}
-	if(in.GetMessageId() <= 0 || in.GetMessageId() % 2 == 1){
-		fmt.Println("PQRequest : wrong message_id format")
-		return nil , errors.New("PQRequest : wrong message_id format")
+	message_id := in.GetMessageId()
+	nonce := in.GetNonce()
+	if len(nonce) != 20 {
+		return nil, errors.New("PQRequest : wrong nonce format")
+	} else if message_id%2 != 0 || message_id <= 0 {
+		return nil, errors.New("PQRequest : wrong message_id format")
 	}
 	fmt.Println(in)
+
 	prime := tools.Random_Prime()
-	return &pb.PQResponse{Nonce: in.GetNonce(), ServerNonce: tools.RandomString(20) , MessageId: in.GetMessageId() + 1, P: int64(prime) , G: int64(tools.FindPrimitive(prime))}, nil
+	response := pb.PQResponse{
+		Nonce:       nonce,
+		ServerNonce: tools.RandomString(20),
+		MessageId:   message_id + 1,
+		P:           int64(prime),
+		G:           int64(tools.FindPrimitive(prime)),
+	}
+	return &response, nil
 }
 
 func (c *authServer) RequestDHParams(ctx context.Context, in *pb.DHRequest) (*pb.DHResponse, error) {
-	if(len(in.GetNonce()) != 20){
-		fmt.Println("DHRequest : wrong nonce format")
-		return nil , errors.New("DHRequest : wrong nonce format")
-	}
-	if(len(in.GetServerNonce()) != 20){
-		fmt.Println("DHRequest : wrong server-nonce format")
-		return nil , errors.New("DHRequest : wrong server-nonce format")
-	}
-	if(in.GetMessageId() <= 0 || in.GetMessageId() % 2 == 1){
-		fmt.Println("DHRequest : wrong message_id format")
-		return nil , errors.New("DHRequest : wrong message_id format")
+	message_id := in.GetMessageId()
+	nonce := in.GetNonce()
+	server_nonce := in.GetServerNonce()
+	a := in.GetA()
+	if len(nonce) != 20 || len(server_nonce) != 20 {
+		return nil, errors.New("DHRequest : wrong nonce or server_nonce format")
+	} else if message_id%2 != 0 || message_id <= 0 {
+		return nil, errors.New("DHRequest : wrong message_id format")
 	}
 	fmt.Println(in)
-	return &pb.DHResponse{Nonce: in.GetNonce(), ServerNonce: in.GetServerNonce(), MessageId: in.GetMessageId() + 1, B: 22}, nil
+
+	private_key := tools.RandomNumber(50)
+	p, g := 23, 5
+	auth_key := int64(p) % int64(math.Pow(float64(a), float64(private_key)))
+	fmt.Println(auth_key)
+
+	response := pb.DHResponse{
+		Nonce:       nonce,
+		ServerNonce: server_nonce,
+		MessageId:   message_id,
+		B:           int64(math.Pow(1, float64(private_key))) % int64(g),
+	}
+	return &response, nil
 }
 
 func newAuthServer() *authServer {
@@ -61,14 +79,14 @@ func main() {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("Failed to listen! %v", err)
 	} else {
-		fmt.Println("listening on port: ", *port)
+		fmt.Println("Listening on port: ", *port)
 	}
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterAuthenticatorServer(grpcServer, newAuthServer())
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatalf("Failed to serve! %v", err)
 	}
 }
