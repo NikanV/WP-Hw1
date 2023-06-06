@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	pb "auth-server/auth"
-	tools "tools"
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
@@ -29,11 +28,15 @@ func reqPQHandler(c *gin.Context) {
 	} else if message_id%2 != 0 || message_id <= 0 {
 		panic("Wrong message_id format! Should be even and greater than zero!")
 	}
+	nonce := c.Query("nonce")
+	if len(nonce) != 20 {
+		panic("Wrong nonce format! Should be exactly 20 characters long!")
+	}
 
 	client, conn := makeAuthenticatorClient()
 	defer conn.Close()
 	request := pb.PQRequest{
-		Nonce:     tools.RandomString(20),
+		Nonce:     nonce,
 		MessageId: message_id,
 	}
 
@@ -52,14 +55,19 @@ func reqPQHandler(c *gin.Context) {
 }
 
 func reqDHParamsHandler(c *gin.Context) {
-	nonce := c.Query("nonce")
-	server_nonce := c.Query("server_nonce")
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
 		panic("Wrong message_id format! " + err.Error())
 	} else if message_id%2 != 0 || message_id <= 0 {
 		panic("Wrong message_id format! Should be even and greater than zero!")
-	} else if len(nonce) != 20 || len(server_nonce) != 20 {
+	}
+	a, err := strconv.ParseInt(c.Query("a"), 10, 64)
+	if err != nil {
+		panic("Wrong A format! " + err.Error())
+	}
+	nonce := c.Query("nonce")
+	server_nonce := c.Query("server_nonce")
+	if len(nonce) != 20 || len(server_nonce) != 20 {
 		panic("Wrong nonce or server_nonce format! Should be exactly 20 characters long!")
 	}
 
@@ -69,7 +77,7 @@ func reqDHParamsHandler(c *gin.Context) {
 		Nonce:       nonce,
 		ServerNonce: server_nonce,
 		MessageId:   message_id,
-		A:           2,
+		A:           a,
 	}
 	response, err := client.RequestDHParams(context.Background(), &request)
 	if err != nil {
