@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"strconv"
 
 	pb "auth-server/auth"
+	tools "tools"
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
@@ -12,38 +14,66 @@ import (
 	"flag"
 )
 
-func reqPQHandler(c *gin.Context) {
+func makeAuthenticatorClient() (pb.AuthenticatorClient, *grpc.ClientConn) {
 	conn, err := grpc.Dial(*authServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		panic("fail to dial: " + err.Error())
+		panic("Failed to dial authenticator-server! " + err.Error())
 	}
-	defer conn.Close()
-	client := pb.NewAuthenticatorClient(conn)
+	return pb.NewAuthenticatorClient(conn), conn
+}
 
-	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: "client_nonce", MessageId: 4})
+func reqPQHandler(c *gin.Context) {
+	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
-		panic("failed to authenticate: " + err.Error())
+		panic("Wrong message_id format! " + err.Error())
+	} else if message_id%2 != 0 || message_id <= 0 {
+		panic("Wrong message_id format! Should be even and greater than zero!")
+	}
+
+	client, conn := makeAuthenticatorClient()
+	defer conn.Close()
+	request := pb.PQRequest{
+		Nonce:     tools.RandomString(20),
+		MessageId: message_id,
+	}
+
+	response, err := client.RequestPQ(context.Background(), &request)
+	if err != nil {
+		panic("Failed to request PQ! " + err.Error())
 	}
 
 	c.JSON(200, gin.H{
 		"nonce":        response.Nonce,
 		"server_nonce": response.ServerNonce,
 		"message_id":   response.MessageId,
+		"p":            response.P,
 		"g":            response.G,
 	})
 }
 
 func reqDHParamsHandler(c *gin.Context) {
-	conn, err := grpc.Dial(*authServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	nonce := c.Query("nonce")
+	server_nonce := c.Query("server_nonce")
+	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
-		panic("fail to dial: " + err.Error())
+		panic("Wrong message_id format! " + err.Error())
+	} else if message_id%2 != 0 || message_id <= 0 {
+		panic("Wrong message_id format! Should be even and greater than zero!")
+	} else if len(nonce) != 20 || len(server_nonce) != 20 {
+		panic("Wrong nonce or server_nonce format! Should be exactly 20 characters long!")
 	}
-	defer conn.Close()
-	client := pb.NewAuthenticatorClient(conn)
 
-	response, err := client.RequestDHParams(context.Background(), &pb.DHRequest{Nonce: "pp", ServerNonce: "tt", MessageId: 6, A: 2})
+	client, conn := makeAuthenticatorClient()
+	defer conn.Close()
+	request := pb.DHRequest{
+		Nonce:       nonce,
+		ServerNonce: server_nonce,
+		MessageId:   message_id,
+		A:           2,
+	}
+	response, err := client.RequestDHParams(context.Background(), &request)
 	if err != nil {
-		panic("failed to send key: " + err.Error())
+		panic("Failed to request DHParams! " + err.Error())
 	}
 
 	c.JSON(200, gin.H{
@@ -62,11 +92,17 @@ func main() {
 	flag.Parse()
 
 	r := gin.Default()
+	r.GET("/test", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"Message": "The gateway-server is up",
+		})
+	})
+
 	r.GET("/auth/reqpq", reqPQHandler)
 	r.GET("/auth/reqdh", reqDHParamsHandler)
 
 	err := r.Run(":6443")
 	if err != nil {
-		panic("[Error] failed to start Gin server due to: " + err.Error())
+		panic("Failed to start Gin server on port 6443! " + err.Error())
 	}
 }
