@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+<<<<<<< HEAD
 package google.protobuf;
 
 option go_package = "google.golang.org/protobuf/types/known/structpb";
@@ -36,3 +37,6 @@ message USERS {
     string sex = 5;
     string createdAt = 6;
 }
+=======
+option go_package = "./";
+>>>>>>> origin/main
