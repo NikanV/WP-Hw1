@@ -73,6 +73,8 @@ func (c *getUserServer) GetUserWSqlInj(ctx context.Context,
 	in *pb.Get_User_Sql_Inj_Req) (*pb.Get_Users_Resp, error) {
 	fmt.Println("Get user with sql injection request received")
 	//return &pb.Get_Users_Response{Users:, MessageId: in.GetMessageId() + 1},nil
+	queryString := in.GetUserId()
+	fmt.Println("query string: " + queryString)
 	return nil, nil
 }
 
