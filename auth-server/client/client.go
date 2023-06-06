@@ -12,7 +12,7 @@ import (
 )
 
 func makePQRequest(client pb.AuthenticatorClient) {
-	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: tools.RandomString(20), MessageId: 4})
+	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: tools.RandomString(20) , MessageId: 4})
 	if err != nil {
 		log.Fatalf("%v", err)
 	}

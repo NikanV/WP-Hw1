@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"crypto/sha1"
+	"encoding/base64"
 )
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -173,4 +175,11 @@ func FindPrimitive(n int) int {
 
 	// If no primitive root found
 	return -1
+}
+
+func Sha1_gen(s string) (string){
+	var bv []byte
+	hasher := sha1.New()
+    hasher.Write(bv)
+   	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 }

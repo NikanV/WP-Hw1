@@ -40,8 +40,9 @@ func (c *authServer) RequestPQ(ctx context.Context, in *pb.PQRequest) (*pb.PQRes
 		"p": p,
 		"g": g,
 	})
+	hash := tools.Sha1_gen(nonce+server_nonce)
 
-	err := client.HSet(context.Background(), nonce+server_nonce, values, 5*time.Minute).Err()
+	err := client.HSet(context.Background(), hash , values, 5*time.Minute).Err()
 	if err != nil {
 		return nil, err
 	}
@@ -68,16 +69,16 @@ func (c *authServer) RequestDHParams(ctx context.Context, in *pb.DHRequest) (*pb
 		return nil, errors.New("DHRequest : wrong message_id format")
 	}
 	private_key := tools.RandomNumber(50)
-
+	hash := tools.Sha1_gen(nonce+server_nonce)
 	client := initRedisClient()
 	defer client.Close()
-	data := client.HGetAll(context.Background(), nonce+server_nonce).Val()
+	data := client.HGetAll(context.Background(), hash).Val()
 
 	p, _ := strconv.ParseInt(data["p"], 10, 64)
 	g, _ := strconv.ParseInt(data["g"], 10, 64)
 	auth_key := int64(p) % int64(math.Pow(float64(a), float64(private_key)))
-	client.Del(context.Background(), nonce+server_nonce)
-	err := client.Set(context.Background(), nonce+server_nonce, auth_key, 0).Err()
+	client.Del(context.Background(), hash)
+	err := client.Set(context.Background(), hash, auth_key, 0).Err()
 	if err != nil {
 		return nil, err
 	}
