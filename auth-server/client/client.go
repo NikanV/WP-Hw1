@@ -8,10 +8,11 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	tools "tools"
 )
 
 func makePQRequest(client pb.AuthenticatorClient) {
-	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: "client_nonce11111111", MessageId: 4})
+	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: tools.RandomString(20) , MessageId: 4})
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -20,7 +21,7 @@ func makePQRequest(client pb.AuthenticatorClient) {
 }
 
 func makeDHRequest(client pb.AuthenticatorClient) {
-	response, err := client.RequestDHParams(context.Background(), &pb.DHRequest{Nonce: "pp", ServerNonce: "tt", MessageId: 6, A: 2})
+	response, err := client.RequestDHParams(context.Background(), &pb.DHRequest{Nonce: "pp111111111111111111", ServerNonce: "tt111111111111111111", MessageId: 6, A: 2})
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
