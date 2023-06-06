@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net"
-
+	"errors"
 	"google.golang.org/grpc"
+	tools "tools"
 )
 
 type authServer struct {
@@ -16,12 +17,33 @@ type authServer struct {
 }
 
 func (c *authServer) RequestPQ(ctx context.Context, in *pb.PQRequest) (*pb.PQResponse, error) {
-	fmt.Println("Got the request")
-	return &pb.PQResponse{Nonce: in.GetNonce(), ServerNonce: "server_nonce", MessageId: in.GetMessageId() + 1, P: 23, G: 5}, nil
+	if(len(in.GetNonce()) != 20){
+		fmt.Println("PQRequest : wrong nonce format")
+		return nil , errors.New("PQRequest : wrong nonce format")
+	}
+	if(in.GetMessageId() <= 0 || in.GetMessageId() % 2 == 1){
+		fmt.Println("PQRequest : wrong message_id format")
+		return nil , errors.New("PQRequest : wrong message_id format")
+	}
+	fmt.Println(in)
+	prime := tools.Random_Prime()
+	return &pb.PQResponse{Nonce: in.GetNonce(), ServerNonce: tools.RandomString(20) , MessageId: in.GetMessageId() + 1, P: int64(prime) , G: int64(tools.FindPrimitive(prime))}, nil
 }
 
 func (c *authServer) RequestDHParams(ctx context.Context, in *pb.DHRequest) (*pb.DHResponse, error) {
-	fmt.Println("got the public key")
+	if(len(in.GetNonce()) != 20){
+		fmt.Println("DHRequest : wrong nonce format")
+		return nil , errors.New("DHRequest : wrong nonce format")
+	}
+	if(len(in.GetServerNonce()) != 20){
+		fmt.Println("DHRequest : wrong server-nonce format")
+		return nil , errors.New("DHRequest : wrong server-nonce format")
+	}
+	if(in.GetMessageId() <= 0 || in.GetMessageId() % 2 == 1){
+		fmt.Println("DHRequest : wrong message_id format")
+		return nil , errors.New("DHRequest : wrong message_id format")
+	}
+	fmt.Println(in)
 	return &pb.DHResponse{Nonce: in.GetNonce(), ServerNonce: in.GetServerNonce(), MessageId: in.GetMessageId() + 1, B: 22}, nil
 }
 
