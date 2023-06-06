@@ -16,7 +16,6 @@ import (
 var (
 	port  = flag.Int("port", 5062, "The server port")
 	db    *gorm.DB
-	err   error
 	users = []*pb.USERS{
 		{Name: "nikan", Family: "vsi", Id: 5303, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
 		{Name: "nima", Family: "enigma", Id: 5263, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
