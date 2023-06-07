@@ -39,10 +39,10 @@ func (c *bizServiceServer) GetUsers(ctx context.Context, in *pb.GetUsersRequest)
 		for rows.Next() {
 			rowValues, _ := rows.Values()
 			users_response = append(users_response, &pb.USER{
-				Id:        rowValues[0].(int64),
+				Id:        int64(rowValues[0].(int32)),
 				Name:      rowValues[1].(string),
 				Family:    rowValues[2].(string),
-				Age:       rowValues[3].(int64),
+				Age:       int64(rowValues[3].(int32)),
 				Sex:       rowValues[4].(string),
 				CreatedAt: rowValues[5].(string),
 			})
@@ -56,12 +56,15 @@ func (c *bizServiceServer) GetUsers(ctx context.Context, in *pb.GetUsersRequest)
 		defer rows.Close()
 		for iterate := 0; rows.Next() && iterate < 100; iterate++ {
 			iterate++
-			rowValues, _ := rows.Values()
+			rowValues, err := rows.Values()
+			if err != nil {
+				return nil, err
+			}
 			users_response = append(users_response, &pb.USER{
-				Id:        rowValues[0].(int64),
+				Id:        int64(rowValues[0].(int32)),
 				Name:      rowValues[1].(string),
 				Family:    rowValues[2].(string),
-				Age:       rowValues[3].(int64),
+				Age:       int64(rowValues[3].(int32)),
 				Sex:       rowValues[4].(string),
 				CreatedAt: rowValues[5].(string),
 			})
@@ -86,16 +89,20 @@ func (c *bizServiceServer) GetUsersWithSQL(ctx context.Context, in *pb.GetUsersW
 		return nil, err
 	}
 	defer rows.Close()
-	rowValues, _ := rows.Values()
+	rows.Next()
+	rowValues, err := rows.Values()
+	if err != nil {
+		return nil, err
+	}
 	users_response := []*pb.USER{}
-	users_response[0] = &pb.USER{
-		Id:        rowValues[0].(int64),
+	users_response = append(users_response, &pb.USER{
+		Id:        int64(rowValues[0].(int32)),
 		Name:      rowValues[1].(string),
 		Family:    rowValues[2].(string),
-		Age:       rowValues[3].(int64),
+		Age:       int64(rowValues[3].(int32)),
 		Sex:       rowValues[4].(string),
 		CreatedAt: rowValues[5].(string),
-	}
+	})
 
 	response := pb.GetUsersResponse{
 		Users:     users_response,
@@ -143,7 +150,7 @@ func main() {
 
 	queryCreateTable := "Create table USERS(\n\tuser_id int,\n\tname varchar,\n\tfamily varchar,\n\tage int,\n\tsex varchar(4),\n\tcreatedAt varchar\n);"
 	if _, err = pg.db.Exec(context.Background(), queryCreateTable); err != nil {
-		log.Fatalf("Unable to create USERS table! %v", err)
+		fmt.Printf("Unable to create USERS table! %v\n", err)
 	}
 	for i := range users {
 		queryInsertUsers := `INSERT INTO USERS (user_id, name, family, age, 

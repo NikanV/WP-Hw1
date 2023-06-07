@@ -23,7 +23,7 @@ func makeAuthenticatorClient() (pb.AuthenticatorClient, *grpc.ClientConn) {
 }
 
 func makeBizServiceClient() (pb2.BizServiceClient, *grpc.ClientConn) {
-	conn, err := grpc.Dial(*authServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(*bizServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		panic("Failed to dial authenticator-server! " + err.Error())
 	}
@@ -149,7 +149,7 @@ func getUsersInjectionHandler(c *gin.Context) {
 	}
 	response, err := client.GetUsersWithSQL(context.Background(), &request)
 	if err != nil {
-		panic("Failed to request DHParams! " + err.Error())
+		panic("Failed to get users with SQL injection! " + err.Error())
 	}
 
 	c.JSON(200, gin.H{
@@ -159,7 +159,8 @@ func getUsersInjectionHandler(c *gin.Context) {
 }
 
 var (
-	authServerAddr = flag.String("addr", "localhost:5052", "this is the server address")
+	authServerAddr = flag.String("authAddr", "localhost:5052", "this is the auth server address")
+	bizServerAddr  = flag.String("bizAddr", "localhost:5062", "this is the biz server address")
 )
 
 func main() {
