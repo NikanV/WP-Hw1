@@ -92,6 +92,65 @@ func reqDHParamsHandler(c *gin.Context) {
 	})
 }
 
+func getUsersHandler(c *gin.Context) {
+	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
+	if err != nil {
+		panic("Wrong message_id format! " + err.Error())
+	} else if message_id%2 != 0 || message_id <= 0 {
+		panic("Wrong message_id format! Should be even and greater than zero!")
+	}
+	// user_id, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	// if err != nil {
+	// 	panic("Wrong user_id format! " + err.Error())
+	// }
+	// auth_key := c.Query("auth_key")
+	// client, conn := makeAuthenticatorClient()
+	// defer conn.Close()
+	// request := pb.DHRequest{
+	// 	Nonce:       nonce,
+	// 	ServerNonce: server_nonce,
+	// 	MessageId:   message_id,
+	// 	A:           a,
+	// }
+	// response, err := client.RequestDHParams(context.Background(), &request)
+	// if err != nil {
+	// 	panic("Failed to request DHParams! " + err.Error())
+	// }
+
+	// c.JSON(200, gin.H{
+	// 	"users":        response.Nonce,
+	// 	"message_id":   response.MessageId,
+	// })
+}
+
+func getUsersInjectionHandler(c *gin.Context) {
+	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
+	if err != nil {
+		panic("Wrong message_id format! " + err.Error())
+	} else if message_id%2 != 0 || message_id <= 0 {
+		panic("Wrong message_id format! Should be even and greater than zero!")
+	}
+	// user_id := c.Query("user_id")
+	// auth_key := c.Query("auth_key")
+	// client, conn := makeAuthenticatorClient()
+	// defer conn.Close()
+	// request := pb.DHRequest{
+	// 	Nonce:       nonce,
+	// 	ServerNonce: server_nonce,
+	// 	MessageId:   message_id,
+	// 	A:           a,
+	// }
+	// response, err := client.RequestDHParams(context.Background(), &request)
+	// if err != nil {
+	// 	panic("Failed to request DHParams! " + err.Error())
+	// }
+
+	// c.JSON(200, gin.H{
+	// 	"users":        response.Nonce,
+	// 	"message_id":   response.MessageId,
+	// })
+}
+
 var (
 	authServerAddr = flag.String("addr", "localhost:5052", "this is the server address")
 )
@@ -108,6 +167,8 @@ func main() {
 
 	r.GET("/auth/reqpq", reqPQHandler)
 	r.GET("/auth/reqdh", reqDHParamsHandler)
+	r.GET("/biz/getusers", getUsersHandler)
+	r.GET("/biz/getusersinjection", getUsersInjectionHandler)
 
 	err := r.Run(":6443")
 	if err != nil {
