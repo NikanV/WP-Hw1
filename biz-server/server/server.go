@@ -5,57 +5,40 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
-	_ "github.com/lib/pq"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"time"
+
+	"github.com/jackc/pgx/v4/pgxpool"
+	"google.golang.org/grpc"
 )
 
 type postgres struct {
 	db *pgxpool.Pool
 }
 
-var (
-	port = flag.Int("port", 5062, "The server port")
-	//db    *gorm.DB
-	users = []*pb.USERS{
-		{Name: "nikan", Family: "vsi", Id: 5303, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
-		{Name: "nima", Family: "enigma", Id: 5263, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
-		{Name: "alireza", Family: "kaz", Id: 9649, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
-	}
-)
-
-const (
-	db_host = "localhost"
-	db_port = 5432
-	db_user = "postgres"
-	db_pass = "postgres"
-	db_name = "postgres"
-)
-
-type getUserServer struct {
-	pb.UnimplementedGet_UsersServer
+type bizServiceServer struct {
+	pb.UnimplementedBizServiceServer
 }
 
-func (pg *postgres) GetUsers(ctx context.Context,
-	in *pb.Get_Users_Req) (*pb.Get_Users_Resp, error) {
-	fmt.Println("Get user request received")
-	var usr []*pb.USERS
-	if &in.UserId != nil {
-		queryString := "SELECT * FROM USERS WHERE user_id=" + string(in.GetUserId()) + ";"
+func (c *bizServiceServer) GetUsers(ctx context.Context, in *pb.GetUsersRequest) (*pb.GetUsersResponse, error) {
+	users_response := []*pb.USER{}
+	user_id := in.GetUserId()
+	message_id := in.GetMessageId()
+	if user_id >= 0 {
+		queryString := "SELECT * FROM USERS WHERE user_id=" + strconv.Itoa(int(user_id)) + ";"
 
 		rows, err := pg.db.Query(context.Background(), queryString)
 		if err != nil {
-			fmt.Printf("rows.Scan error: %s", err)
 			return nil, err
 		}
 		defer rows.Close()
+
 		for rows.Next() {
 			rowValues, _ := rows.Values()
-			usr = append(usr, &pb.USERS{
+			users_response = append(users_response, &pb.USER{
 				Id:        rowValues[0].(int64),
 				Name:      rowValues[1].(string),
 				Family:    rowValues[2].(string),
@@ -68,15 +51,13 @@ func (pg *postgres) GetUsers(ctx context.Context,
 		queryString := "SELECT * FROM USERS;"
 		rows, err := pg.db.Query(context.Background(), queryString)
 		if err != nil {
-			fmt.Printf("rows.Scan error: %s", err)
 			return nil, err
 		}
 		defer rows.Close()
-		itterate := 0
-		for rows.Next() && itterate < 100 {
-			itterate++
+		for iterate := 0; rows.Next() && iterate < 100; iterate++ {
+			iterate++
 			rowValues, _ := rows.Values()
-			usr = append(usr, &pb.USERS{
+			users_response = append(users_response, &pb.USER{
 				Id:        rowValues[0].(int64),
 				Name:      rowValues[1].(string),
 				Family:    rowValues[2].(string),
@@ -86,77 +67,103 @@ func (pg *postgres) GetUsers(ctx context.Context,
 			})
 		}
 	}
-	return &pb.Get_Users_Resp{Users: usr, MessageId: in.GetMessageId() + 1}, nil
+
+	response := pb.GetUsersResponse{
+		Users:     users_response,
+		MessageId: message_id + 1,
+	}
+
+	return &response, nil
 }
 
-func newGetUserServer() *getUserServer {
-	return &getUserServer{}
-}
+func (c *bizServiceServer) GetUsersWithSQL(ctx context.Context, in *pb.GetUsersWithSQLRequest) (*pb.GetUsersResponse, error) {
+	user_id := in.GetUserId()
+	message_id := in.GetMessageId()
+	queryString := "SELECT * FROM USERS WHERE user_id=" + user_id + ";"
 
-func (pg *postgres) GetUserWSqlInj(ctx context.Context,
-	in *pb.Get_User_Sql_Inj_Req) (*pb.Get_Users_Resp, error) {
-	fmt.Println("Get user with sql injection request received")
-	queryString := "SELECT * FROM USERS WHERE user_id=" + in.GetUserId() + ";"
-	fmt.Println("query string: " + queryString)
-
-	_, err := pg.db.Query(context.Background(), queryString)
+	rows, err := pg.db.Query(context.Background(), queryString)
 	if err != nil {
-		fmt.Printf("rows.Scan error: %s", err)
 		return nil, err
 	}
-	return &pb.Get_Users_Resp{Users: nil, MessageId: in.GetMessageId() + 1}, nil
+	defer rows.Close()
+	rowValues, _ := rows.Values()
+	users_response := []*pb.USER{}
+	users_response[0] = &pb.USER{
+		Id:        rowValues[0].(int64),
+		Name:      rowValues[1].(string),
+		Family:    rowValues[2].(string),
+		Age:       rowValues[3].(int64),
+		Sex:       rowValues[4].(string),
+		CreatedAt: rowValues[5].(string),
+	}
+
+	response := pb.GetUsersResponse{
+		Users:     users_response,
+		MessageId: message_id + 1,
+	}
+
+	return &response, nil
 }
 
-func checkError(err error) {
-	if err != nil {
-		fmt.Println("failed to connect to database")
-		log.Fatal(err)
-	}
+func newBizServiceServer() *bizServiceServer {
+	return &bizServiceServer{}
 }
+
+var (
+	port  = flag.Int("port", 5062, "The server port")
+	users = []*pb.USER{
+		{Name: "nikan", Family: "vsi", Id: 5303, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
+		{Name: "nima", Family: "enigma", Id: 5263, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
+		{Name: "alireza", Family: "kaz", Id: 9649, Age: 19, Sex: "male", CreatedAt: time.Now().UTC().String()},
+	}
+	pg = postgres{}
+)
+
+const (
+	db_host = "localhost"
+	db_port = 5432
+	db_user = "postgres"
+	db_pass = "postgres"
+	db_name = "postgres"
+)
 
 func main() {
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		db_host, db_port, db_user, db_pass, db_name)
+	flag.Parse()
 
-	//db, err := sql.Open("postgres", psqlconn)
-	db, err := pgxpool.Connect(context.Background(), psqlconn)
+	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", db_host, db_port, db_user, db_pass, db_name)
 
-	checkError(err)
-
-	fmt.Println("connected to database!")
-	defer db.Close()
-	queryCreateTable := "Create table USERS(\n\tuser_id int,\n\tname varchar,\n\tfamily varchar,\n\tage int,\n\tsex varchar(4),\n\tcreatedAt varchar\n);"
-	_, err = db.Exec(context.Background(), queryCreateTable)
+	opened_db, err := pgxpool.Connect(context.Background(), psqlconn)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to create USERS table: %v\n", err)
-		log.Fatal(err)
+		log.Fatalf("Failed to connect to database! %v", err)
+	} else {
+		pg.db = opened_db
+		fmt.Println("Connected to database!")
+	}
+	defer pg.db.Close()
+
+	queryCreateTable := "Create table USERS(\n\tuser_id int,\n\tname varchar,\n\tfamily varchar,\n\tage int,\n\tsex varchar(4),\n\tcreatedAt varchar\n);"
+	if _, err = pg.db.Exec(context.Background(), queryCreateTable); err != nil {
+		log.Fatalf("Unable to create USERS table! %v", err)
 	}
 	for i := range users {
 		queryInsertUsers := `INSERT INTO USERS (user_id, name, family, age, 
                    createdAt, sex) VALUES ($1, $2,$3,$4,$5,$6);`
-		_, err := db.Exec(context.Background(), queryInsertUsers, users[i].GetId(), users[i].GetName(),
-			users[i].GetFamily(), users[i].GetAge(), users[i].GetCreatedAt(), users[i].GetSex())
-		if err != nil {
+		if _, err := pg.db.Exec(context.Background(), queryInsertUsers, users[i].GetId(), users[i].GetName(), users[i].GetFamily(), users[i].GetAge(), users[i].GetCreatedAt(), users[i].GetSex()); err != nil {
 			fmt.Fprintf(os.Stderr, "Unable to insert data into database: %v\n", err)
 			log.Fatal(err)
 		}
 	}
 
-	fmt.Println("insertion completed!")
-
-	flag.Parse()
-
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("Failed to listen! %v", err)
 	} else {
-		fmt.Println("listening on port: ", *port)
+		fmt.Println("Listening on port: ", *port)
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterGet_UsersServer(grpcServer, newGetUserServer())
-
+	pb.RegisterBizServiceServer(grpcServer, newBizServiceServer())
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatalf("Failed to serve! %v", err)
 	}
 }

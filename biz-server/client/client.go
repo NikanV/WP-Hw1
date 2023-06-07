@@ -5,30 +5,29 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
 )
 
 var (
 	serverAddr = flag.String("addr", "localhost:5062", "this is the server address")
 )
 
-func makeGetUserReq(client pb.Get_UsersClient) {
-	response, err := client.GetUsers(context.Background(),
-		&pb.Get_Users_Req{UserId: 9649, AuthKey: "authKey", MessageId: 4})
-	// todo: check auth key
+func makeGetUsersRequest(client pb.BizServiceClient) {
+	response, err := client.GetUsers(context.Background(), &pb.GetUsersRequest{UserId: 9649, AuthKey: "authKey", MessageId: 4})
 	if err != nil {
-		log.Fatalf("failed to authenticate: %v", err)
+		log.Fatalf("Failed to get users! %v", err)
 	}
+
 	log.Println(response)
 }
 
-func makeGetUserWSqlInjReq(client pb.Get_UsersClient) {
-	response, err := client.Get_User_Sql_Inj(context.Background(),
-		&pb.Get_User_Sql_Inj_Req{AuthKey: "authKey", MessageId: 4})
+func makeGetUsersWithSQLRequest(client pb.BizServiceClient) {
+	response, err := client.GetUsersWithSQL(context.Background(), &pb.GetUsersWithSQLRequest{UserId: "9649", AuthKey: "authKey", MessageId: 4})
 	if err != nil {
-		log.Fatalf("failed to authenticate: %v", err)
+		log.Fatalf("Failed to get users with SQL: %v", err)
 	}
 	log.Println(response)
 }
@@ -43,9 +42,7 @@ func main() {
 	fmt.Println("connected to the server")
 	defer conn.Close()
 
-	client := pb.NewGet_UsersClient(conn)
-	//client2 := pb.NewGet_UsersClient(conn)
-	//
-	makeGetUserReq(client)
-	//makeGetUserReq(client2)
+	client := pb.NewBizServiceClient(conn)
+	makeGetUsersRequest(client)
+	makeGetUsersWithSQLRequest(client)
 }
