@@ -1,12 +1,22 @@
 version: '3.8'
 services:
-  db:
+  postgres:
     image: postgres:latest
     restart: always
+
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
     ports:
       - "5432:5432"
-    volumes: 
-      - ./db/:/var/lib/postgresql/data/
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=postgres@sql.net
+      - PGADMIN_DEFAULT_PASSWORD=postgres
+    ports:
+      - "3657:80"
+
+#        run database with docker-compose up --build
