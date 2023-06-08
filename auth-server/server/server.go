@@ -1,7 +1,6 @@
 package main
 
 import (
-	pb "auth-server/auth"
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,7 +11,9 @@ import (
 	"net"
 	"strconv"
 	"time"
-	tools "tools"
+
+	pb "WP-Hw1/proto"
+	tools "WP-Hw1/tools"
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
@@ -40,9 +41,9 @@ func (c *authServer) RequestPQ(ctx context.Context, in *pb.PQRequest) (*pb.PQRes
 		"p": p,
 		"g": g,
 	})
-	hash := tools.Sha1_gen(nonce+server_nonce)
+	hash := tools.Sha1_gen(nonce + server_nonce)
 
-	err := client.HSet(context.Background(), hash , values, 5*time.Minute).Err()
+	err := client.HSet(context.Background(), hash, values, 5*time.Minute).Err()
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +70,7 @@ func (c *authServer) RequestDHParams(ctx context.Context, in *pb.DHRequest) (*pb
 		return nil, errors.New("DHRequest : wrong message_id format")
 	}
 	private_key := tools.RandomNumber(50)
-	hash := tools.Sha1_gen(nonce+server_nonce)
+	hash := tools.Sha1_gen(nonce + server_nonce)
 	client := initRedisClient()
 	defer client.Close()
 	data := client.HGetAll(context.Background(), hash).Val()

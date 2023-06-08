@@ -4,8 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	pb "auth-server/auth"
-	pb2 "biz-server/biz"
+	pb "WP-Hw1/proto"
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
@@ -22,12 +21,12 @@ func makeAuthenticatorClient() (pb.AuthenticatorClient, *grpc.ClientConn) {
 	return pb.NewAuthenticatorClient(conn), conn
 }
 
-func makeBizServiceClient() (pb2.BizServiceClient, *grpc.ClientConn) {
+func makeBizServiceClient() (pb.BizServiceClient, *grpc.ClientConn) {
 	conn, err := grpc.Dial(*bizServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		panic("Failed to dial authenticator-server! " + err.Error())
 	}
-	return pb2.NewBizServiceClient(conn), conn
+	return pb.NewBizServiceClient(conn), conn
 }
 
 func reqPQHandler(c *gin.Context) {
@@ -115,7 +114,7 @@ func getUsersHandler(c *gin.Context) {
 	auth_key := c.Query("auth_key")
 	client, conn := makeBizServiceClient()
 	defer conn.Close()
-	request := pb2.GetUsersRequest{
+	request := pb.GetUsersRequest{
 		UserId:    user_id,
 		AuthKey:   auth_key,
 		MessageId: message_id,
@@ -142,7 +141,7 @@ func getUsersInjectionHandler(c *gin.Context) {
 	auth_key := c.Query("auth_key")
 	client, conn := makeBizServiceClient()
 	defer conn.Close()
-	request := pb2.GetUsersWithSQLRequest{
+	request := pb.GetUsersWithSQLRequest{
 		UserId:    user_id,
 		AuthKey:   auth_key,
 		MessageId: message_id,

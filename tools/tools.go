@@ -1,14 +1,14 @@
 package __
 
 import (
+	"crypto/sha1"
+	"encoding/base64"
 	"io/ioutil"
 	"math"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
-	"crypto/sha1"
-	"encoding/base64"
 )
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -105,7 +105,7 @@ func power(x int, y uint, p int) int {
 	return res
 }
 
-func findPrimefactors(s map[int]struct{}, n int) {
+func findPrimeFactors(s map[int]struct{}, n int) {
 	// Print the number of 2s that divide n
 	for {
 		s[2] = struct{}{}
@@ -139,7 +139,7 @@ func FindPrimitive(n int) int {
 	s := map[int]struct{}{}
 
 	// Check if n is prime or not
-	if isPrime(n) == false {
+	if !isPrime(n) {
 		return -1
 	}
 
@@ -150,7 +150,7 @@ func FindPrimitive(n int) int {
 	phi := n - 1
 
 	// Find prime factors of phi and store in a set
-	findPrimefactors(s, phi)
+	findPrimeFactors(s, phi)
 
 	// Check for every number from 2 to phi
 	for r := 2; r <= phi; r++ {
@@ -168,7 +168,7 @@ func FindPrimitive(n int) int {
 		}
 
 		// If there was no power with value 1.
-		if flag == false {
+		if !flag {
 			return r
 		}
 	}
@@ -177,9 +177,9 @@ func FindPrimitive(n int) int {
 	return -1
 }
 
-func Sha1_gen(s string) (string){
+func Sha1_gen(s string) string {
 	var bv []byte
 	hasher := sha1.New()
-    hasher.Write(bv)
-   	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	hasher.Write(bv)
+	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 }
