@@ -5,30 +5,30 @@ package google.protobuf;
 option go_package = "google.golang.org/protobuf/types/known/structpb";
 
 
-service Get_Users{
-  rpc GetUsers (Get_Users_Req) returns (Get_Users_Resp) {}
-  rpc Get_User_Sql_Inj (Get_User_Sql_Inj_Req) returns (Get_Users_Resp) {}
+service BizService{
+  rpc GetUsers (GetUsersRequest) returns (GetUsersResponse) {}
+  rpc GetUsersWithSQL (GetUsersWithSQLRequest) returns (GetUsersResponse) {}
 
 }
 
-message Get_Users_Req{
+message GetUsersRequest{
   int64 user_id = 1; // user's id
   string auth_key = 2; // user's authentication key
   int64 message_id = 3; // even and greater than zero
 }
 
-message Get_User_Sql_Inj_Req{
+message GetUsersWithSQLRequest{
   string user_id = 1; // user's id
   string auth_key = 2; // user's authentication key
   int64 message_id = 3; // even and greater than zero
 }
 
-message Get_Users_Resp{
-  repeated USERS users = 1; // array of users
+message GetUsersResponse{
+  repeated USER users = 1; // array of users
   int64 message_id = 2; // odd and greater than zero
 }
 
-message USERS {
+message USER {
     string name = 1;
     string family = 2;
     int64 id = 3;
