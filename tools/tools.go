@@ -26,7 +26,7 @@ func RandomString(length int) string {
 /////////////////////////////////////////////////////////////////////////random num
 
 func RandomNumber(max int) int64 {
-	return int64(seededRand.Intn(max))
+	return (int64(seededRand.Intn(max)) + 1)
 }
 
 func readFile(fname string) (nums []int, err error) {
@@ -178,8 +178,7 @@ func FindPrimitive(n int) int {
 }
 
 func Sha1_gen(s string) string {
-	var bv []byte
 	hasher := sha1.New()
-	hasher.Write(bv)
+	hasher.Write([]byte(s))
 	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 }

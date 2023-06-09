@@ -100,6 +100,41 @@ func reqDHParamsHandler(c *gin.Context) {
 	})
 }
 
+func authCheckHandler(c *gin.Context) {
+	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
+	if err != nil {
+		panic("Wrong message_id format! " + err.Error())
+	} else if message_id%2 != 0 || message_id <= 0 {
+		panic("Wrong message_id format! Should be even and greater than zero!")
+	}
+	nonce := c.Query("nonce")
+	server_nonce := c.Query("server_nonce")
+	if len(nonce) != 20 || len(server_nonce) != 20 {
+		panic("Wrong nonce or server_nonce format! Should be exactly 20 characters long!")
+	}
+	auth_key, err := strconv.ParseInt(c.Query("auth_key"), 10, 64)
+	if err != nil {
+		panic("Wrong auth_key format! " + err.Error())
+	}
+	client, conn := makeAuthenticatorClient()
+	defer conn.Close()
+	request := pb.ACRequest{
+		Nonce:       nonce,
+		ServerNonce: server_nonce,
+		MessageId:   message_id,
+		AuthKey:     auth_key,
+	}
+	response, err := client.AuthCheck(context.Background(), &request)
+	if err != nil {
+		panic("Failed to AuthCheck! " + err.Error())
+	}
+
+	c.JSON(200, gin.H{
+		"message_id": response.MessageId,
+		"AuthCheck":  response.AuthCheck,
+	})
+}
+
 func getUsersHandler(c *gin.Context) {
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
@@ -174,6 +209,7 @@ func main() {
 
 	r.GET("/auth/reqpq", reqPQHandler)
 	r.GET("/auth/reqdh", reqDHParamsHandler)
+	r.GET("/auth/authcheck", authCheckHandler)
 	r.GET("/biz/getusers", getUsersHandler)
 	r.GET("/biz/getusersinjection", getUsersInjectionHandler)
 
