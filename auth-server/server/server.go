@@ -1,7 +1,6 @@
 package main
 
 import (
-	pb "auth-server/auth"
 	"context"
 	"errors"
 	"flag"
@@ -11,7 +10,9 @@ import (
 	"net"
 	"strconv"
 	"time"
-	tools "tools"
+
+	pb "WP-Hw1/proto"
+	tools "WP-Hw1/tools"
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
@@ -21,12 +22,11 @@ type authServer struct {
 	pb.UnimplementedAuthenticatorServer
 }
 
-func (c *authServer) AuthCheck(ctx context.Context, in *pb.ACRequest) (*pb.ACResponce, error) {
+func (c *authServer) AuthCheck(ctx context.Context, in *pb.ACRequest) (*pb.ACResponse, error) {
 	message_id := in.GetMessageId()
 	nonce := in.GetNonce()
 	server_nonce := in.GetServerNonce()
 	auth_key := in.GetAuthKey()
-	auth_check := true
 	if len(nonce) != 20 || len(server_nonce) != 20 {
 		return nil, errors.New("ACRequest : wrong nonce or server_nonce format")
 	} else if message_id%2 != 0 || message_id <= 0 {
@@ -34,23 +34,21 @@ func (c *authServer) AuthCheck(ctx context.Context, in *pb.ACRequest) (*pb.ACRes
 	}
 	client := initRedisClient()
 	defer client.Close()
-	hash := tools.Sha1_gen(nonce+server_nonce)
+	hash := tools.Sha1_gen(nonce + server_nonce)
 	server_auth_key_str, err := client.Get(context.Background(), hash).Result()
-	if(err == redis.Nil){
-		return nil, errors.New("no key found!")
-	} 
-	if(err != nil){
+	if err == redis.Nil {
+		return nil, errors.New("no key found")
+	} else if err != nil {
 		return nil, errors.New("wrong key format")
 	}
-	server_auth_key, _ := strconv.ParseInt(server_auth_key_str , 10 , 64)
-	fmt.Println("the server-auth-key is : %d\n" , server_auth_key)
-	if(server_auth_key != auth_key){
-		auth_check = false
+	server_auth_key, _ := strconv.ParseInt(server_auth_key_str, 10, 64)
+	fmt.Printf("the server-auth-key is : %d\n", server_auth_key)
+
+	response := pb.ACResponse{
+		MessageId: message_id + 1,
+		AuthCheck: server_auth_key == auth_key,
 	}
-	response := pb.ACResponce{
-		MessageId:   message_id + 1,
-		AuthCheck:    auth_check,
-	}
+
 	return &response, nil
 }
 
@@ -68,18 +66,17 @@ func (c *authServer) RequestPQ(ctx context.Context, in *pb.PQRequest) (*pb.PQRes
 
 	client := initRedisClient()
 	defer client.Close()
-	hash := tools.Sha1_gen(nonce+server_nonce)
+	hash := tools.Sha1_gen(nonce + server_nonce)
 	fmt.Println(hash)
-	err := client.HSet(context.Background(), hash , "p" , p).Err()
+	err := client.HSet(context.Background(), hash, "p", p).Err()
 	if err != nil {
 		return nil, err
 	}
-	err = client.HSet(context.Background(), hash , "g" , g).Err()
+	err = client.HSet(context.Background(), hash, "g", g).Err()
 	if err != nil {
 		return nil, err
 	}
-	client.Expire(context.Background() , hash , 2*time.Minute)
-
+	client.Expire(context.Background(), hash, 2*time.Minute)
 
 	fmt.Println(in)
 	response := pb.PQResponse{
@@ -104,15 +101,14 @@ func (c *authServer) RequestDHParams(ctx context.Context, in *pb.DHRequest) (*pb
 	}
 	private_key := tools.RandomNumber(10)
 	fmt.Println(private_key)
-	hash := tools.Sha1_gen(nonce+server_nonce)
+	hash := tools.Sha1_gen(nonce + server_nonce)
 	fmt.Println(hash)
 	client := initRedisClient()
 	defer client.Close()
-	//data := client.HGetAll(context.Background(), hash).Val()
 
-	p, _ := strconv.ParseInt(client.HGet(context.Background() , hash , "p").Val(), 10, 64)
-	g, _ := strconv.ParseInt(client.HGet(context.Background() , hash , "g").Val(), 10, 64)
-	fmt.Println(int64(p) , math.Pow(float64(a), float64(private_key)) , float64(a) , float64(private_key))
+	p, _ := strconv.ParseInt(client.HGet(context.Background(), hash, "p").Val(), 10, 64)
+	g, _ := strconv.ParseInt(client.HGet(context.Background(), hash, "g").Val(), 10, 64)
+	fmt.Println(int64(p), math.Pow(float64(a), float64(private_key)), float64(a), float64(private_key))
 	auth_key := int64(p) % int64(math.Pow(float64(a), float64(private_key)))
 	client.Del(context.Background(), hash)
 	err := client.Set(context.Background(), hash, auth_key, 0).Err()

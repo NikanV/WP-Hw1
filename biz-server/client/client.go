@@ -1,7 +1,7 @@
 package main
 
 import (
-	pb "biz-server/biz"
+	pb "WP-Hw1/proto"
 	"context"
 	"flag"
 	"fmt"

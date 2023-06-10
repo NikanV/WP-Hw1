@@ -1,13 +1,13 @@
-version: '3.1'
+version: '3.8'
 services:
   webserver:
-    image: nginx:latest  	
+    image: nginx:latest
     restart: always
+    network_mode: "bridge"
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx/conf/:/etc/nginx/conf.d/:ro
       - ./cert/:/etc/nginx/ssl/:ro
-
 

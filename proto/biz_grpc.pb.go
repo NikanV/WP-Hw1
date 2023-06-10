@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: biz/biz.proto
+// source: proto/biz.proto
 
-package structpb
+package __
 
 import (
 	context "context"
@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	BizService_GetUsers_FullMethodName        = "/google.protobuf.BizService/GetUsers"
-	BizService_GetUsersWithSQL_FullMethodName = "/google.protobuf.BizService/GetUsersWithSQL"
+	BizService_GetUsers_FullMethodName        = "/BizService/GetUsers"
+	BizService_GetUsersWithSQL_FullMethodName = "/BizService/GetUsersWithSQL"
 )
 
 // BizServiceClient is the client API for BizService service.
@@ -129,7 +129,7 @@ func _BizService_GetUsersWithSQL_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var BizService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "google.protobuf.BizService",
+	ServiceName: "BizService",
 	HandlerType: (*BizServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -142,5 +142,5 @@ var BizService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "biz/biz.proto",
+	Metadata: "proto/biz.proto",
 }

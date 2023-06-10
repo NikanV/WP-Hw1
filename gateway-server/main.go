@@ -4,8 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	pb "auth-server/auth"
-	pb2 "biz-server/biz"
+	pb "WP-Hw1/proto"
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
@@ -22,12 +21,12 @@ func makeAuthenticatorClient() (pb.AuthenticatorClient, *grpc.ClientConn) {
 	return pb.NewAuthenticatorClient(conn), conn
 }
 
-func makeBizServiceClient() (pb2.BizServiceClient, *grpc.ClientConn) {
+func makeBizServiceClient() (pb.BizServiceClient, *grpc.ClientConn) {
 	conn, err := grpc.Dial(*bizServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		panic("Failed to dial authenticator-server! " + err.Error())
 	}
-	return pb2.NewBizServiceClient(conn), conn
+	return pb.NewBizServiceClient(conn), conn
 }
 
 func reqPQHandler(c *gin.Context) {
@@ -123,7 +122,7 @@ func authCheckHandler(c *gin.Context) {
 		Nonce:       nonce,
 		ServerNonce: server_nonce,
 		MessageId:   message_id,
-		AuthKey:           auth_key,
+		AuthKey:     auth_key,
 	}
 	response, err := client.AuthCheck(context.Background(), &request)
 	if err != nil {
@@ -131,8 +130,8 @@ func authCheckHandler(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
-		"message_id":   response.MessageId,
-		"AuthCheck":            response.AuthCheck,
+		"message_id": response.MessageId,
+		"AuthCheck":  response.AuthCheck,
 	})
 }
 
@@ -150,7 +149,7 @@ func getUsersHandler(c *gin.Context) {
 	auth_key := c.Query("auth_key")
 	client, conn := makeBizServiceClient()
 	defer conn.Close()
-	request := pb2.GetUsersRequest{
+	request := pb.GetUsersRequest{
 		UserId:    user_id,
 		AuthKey:   auth_key,
 		MessageId: message_id,
@@ -177,7 +176,7 @@ func getUsersInjectionHandler(c *gin.Context) {
 	auth_key := c.Query("auth_key")
 	client, conn := makeBizServiceClient()
 	defer conn.Close()
-	request := pb2.GetUsersWithSQLRequest{
+	request := pb.GetUsersWithSQLRequest{
 		UserId:    user_id,
 		AuthKey:   auth_key,
 		MessageId: message_id,
@@ -210,7 +209,7 @@ func main() {
 
 	r.GET("/auth/reqpq", reqPQHandler)
 	r.GET("/auth/reqdh", reqDHParamsHandler)
-	r.GET("/auth/authcheck" , authCheckHandler)
+	r.GET("/auth/authcheck", authCheckHandler)
 	r.GET("/biz/getusers", getUsersHandler)
 	r.GET("/biz/getusersinjection", getUsersInjectionHandler)
 
