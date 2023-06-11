@@ -1,64 +1,77 @@
-from locust import User, task, between
+import random
+import string
+import sys
+
 import grpc
-from proto import auth_pb2, auth_pb2_grpc
+from locust import User, between, task, TaskSet, constant
+
+sys.path.append("/home/alireza/Developer/goland/WP-Hw1/proto")
+import auth_pb2 as pb2
+import auth_pb2_grpc as pb2_grpc
 
 
 class GrpcUser(User):
-    host = "localhost"
-    port = 2884
-    wait_time = between(1, 2)
+    wait_time = between(1, 5)
 
     def on_start(self):
-        self.client = AuthenticatorGrpcClient(self.host, self.port)
+        channel = grpc.insecure_channel('localhost:5052')  # Replace with your gRPC server address and port
+        self.stub = pb2_grpc.AuthenticatorStub(channel)
 
     @task
-    def grpc_request_task(self):
-        nonce = "nonce"
-        server_nonce = "server_nonce"
-        message_id = 123
-        a = 789
-        auth_key = 123
+    def request_pq(self):
+        request = pb2.PQRequest()
+        request.nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+        request.message_id = random.randint(1, 100)
 
-        # Make gRPC request using the client
-        response = self.client.request_pq(nonce, message_id)
-        print(response)
-
-        response = self.client.request_dh_params(nonce, server_nonce, message_id, a)
-        print(response)
-
-        response = self.client.auth_check(nonce, server_nonce, message_id, auth_key)
-        print(response)
-
-
-class AuthenticatorGrpcClient:
-    def __init__(self, host, port):
-        self.channel = grpc.insecure_channel(f"{host}:{port}")
-        self.stub = auth_pb2_grpc.AuthenticatorStub(self.channel)
-
-    def request_pq(self, nonce, message_id):
-        request = auth_pb2.PQRequest(
-            nonce=nonce,
-            message_id=message_id
-        )
         response = self.stub.RequestPQ(request)
-        return response
 
-    def request_dh_params(self, nonce, server_nonce, message_id, a):
-        request = auth_pb2.DHRequest(
-            nonce=nonce,
-            server_nonce=server_nonce,
-            message_id=message_id,
-            a=a
-        )
+        print(response)
+
+    @task
+    def request_dh_params(self):
+        request = pb2.DHRequest()
+        request.nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+        request.server_nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+        request.message_id = random.randint(1, 100)
+        request.a = random.randint(1, 100)
+
         response = self.stub.RequestDHParams(request)
-        return response
 
-    def auth_check(self, nonce, server_nonce, message_id, auth_key):
-        request = auth_pb2.ACRequest(
-            nonce=nonce,
-            server_nonce=server_nonce,
-            message_id=message_id,
-            auth_key=auth_key
-        )
+        print(response)
+
+    @task
+    def auth_check(self):
+        request = pb2.ACRequest()
+        request.nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+        request.server_nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+        request.message_id = random.randint(1, 100)
+        request.auth_key = random.randint(1, 100)
+
         response = self.stub.AuthCheck(request)
-        return response
+
+        print(response)
+
+
+class GrpcUserTasks(TaskSet):
+    tasks = {GrpcUser: 1}
+
+
+class GrpcUserTestRunner(TaskSet):
+    task_set = GrpcUserTasks
+    wait_time = constant(0)
+
+
+class GrpcUserLocust(User):
+    host = ''
+    task_set = GrpcUserTestRunner
+
+    def __init__(self):
+        super().__init__()
+        self.client = None
+
+    def on_start(self):
+        self.client = grpc.insecure_channel('localhost:5052')  # Replace with your gRPC server address and port
+
+    def on_stop(self):
+        if self.client:
+            self.client.close()

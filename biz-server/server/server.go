@@ -147,20 +147,22 @@ func main() {
 		fmt.Println("Connected to database!")
 	}
 	defer pg.db.Close()
-
+	do_insert := true
 	queryCreateTable := "Create table USERS(\n\tuser_id int,\n\tname varchar,\n\tfamily varchar,\n\tage int,\n\tsex varchar(4),\n\tcreatedAt varchar\n);"
 	if _, err = pg.db.Exec(context.Background(), queryCreateTable); err != nil {
 		fmt.Printf("Unable to create USERS table! %v\n", err)
+		do_insert = false
 	}
-	for i := range users {
-		queryInsertUsers := `INSERT INTO USERS (user_id, name, family, age, 
+	if do_insert {
+		for i := range users {
+			queryInsertUsers := `INSERT INTO USERS (user_id, name, family, age, 
                    createdAt, sex) VALUES ($1, $2,$3,$4,$5,$6);`
-		if _, err := pg.db.Exec(context.Background(), queryInsertUsers, users[i].GetId(), users[i].GetName(), users[i].GetFamily(), users[i].GetAge(), users[i].GetCreatedAt(), users[i].GetSex()); err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to insert data into database: %v\n", err)
-			log.Fatal(err)
+			if _, err := pg.db.Exec(context.Background(), queryInsertUsers, users[i].GetId(), users[i].GetName(), users[i].GetFamily(), users[i].GetAge(), users[i].GetCreatedAt(), users[i].GetSex()); err != nil {
+				fmt.Fprintf(os.Stderr, "Unable to insert data into database: %v\n", err)
+				log.Fatal(err)
+			}
 		}
 	}
-
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
 	if err != nil {
 		log.Fatalf("Failed to listen! %v", err)
