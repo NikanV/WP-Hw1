@@ -1,18 +1,19 @@
 package main
 
 import (
-	pb "auth-server/auth"
+	pb "WP-Hw1/proto"
 	"context"
 	"flag"
 	"log"
 
+	tools "WP-Hw1/tools"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	tools "tools"
 )
 
 func makePQRequest(client pb.AuthenticatorClient) {
-	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: tools.RandomString(20) , MessageId: 4})
+	response, err := client.RequestPQ(context.Background(), &pb.PQRequest{Nonce: tools.RandomString(20), MessageId: 4})
 	if err != nil {
 		log.Fatalf("%v", err)
 	}

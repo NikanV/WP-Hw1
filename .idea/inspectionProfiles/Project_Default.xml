@@ -1,0 +1,16 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="map.__getitem__" />
+          <option value="proto.biz_pb2._GETUSERSREQUEST" />
+          <option value="proto.auth_pb2._PQREQUEST" />
+          <option value="proto.auth_pb2.*" />
+          <option value="proto.biz_pb2.*" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

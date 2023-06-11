@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: auth/auth.proto
+// source: proto/auth.proto
 
 package __
 
@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Authenticator_RequestPQ_FullMethodName       = "/Authenticator/RequestPQ"
 	Authenticator_RequestDHParams_FullMethodName = "/Authenticator/RequestDHParams"
+	Authenticator_AuthCheck_FullMethodName       = "/Authenticator/AuthCheck"
 )
 
 // AuthenticatorClient is the client API for Authenticator service.
@@ -29,6 +30,7 @@ const (
 type AuthenticatorClient interface {
 	RequestPQ(ctx context.Context, in *PQRequest, opts ...grpc.CallOption) (*PQResponse, error)
 	RequestDHParams(ctx context.Context, in *DHRequest, opts ...grpc.CallOption) (*DHResponse, error)
+	AuthCheck(ctx context.Context, in *ACRequest, opts ...grpc.CallOption) (*ACResponse, error)
 }
 
 type authenticatorClient struct {
@@ -57,12 +59,22 @@ func (c *authenticatorClient) RequestDHParams(ctx context.Context, in *DHRequest
 	return out, nil
 }
 
+func (c *authenticatorClient) AuthCheck(ctx context.Context, in *ACRequest, opts ...grpc.CallOption) (*ACResponse, error) {
+	out := new(ACResponse)
+	err := c.cc.Invoke(ctx, Authenticator_AuthCheck_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthenticatorServer is the server API for Authenticator service.
 // All implementations must embed UnimplementedAuthenticatorServer
 // for forward compatibility
 type AuthenticatorServer interface {
 	RequestPQ(context.Context, *PQRequest) (*PQResponse, error)
 	RequestDHParams(context.Context, *DHRequest) (*DHResponse, error)
+	AuthCheck(context.Context, *ACRequest) (*ACResponse, error)
 	mustEmbedUnimplementedAuthenticatorServer()
 }
 
@@ -75,6 +87,9 @@ func (UnimplementedAuthenticatorServer) RequestPQ(context.Context, *PQRequest) (
 }
 func (UnimplementedAuthenticatorServer) RequestDHParams(context.Context, *DHRequest) (*DHResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestDHParams not implemented")
+}
+func (UnimplementedAuthenticatorServer) AuthCheck(context.Context, *ACRequest) (*ACResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthCheck not implemented")
 }
 func (UnimplementedAuthenticatorServer) mustEmbedUnimplementedAuthenticatorServer() {}
 
@@ -125,6 +140,24 @@ func _Authenticator_RequestDHParams_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Authenticator_AuthCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ACRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticatorServer).AuthCheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Authenticator_AuthCheck_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticatorServer).AuthCheck(ctx, req.(*ACRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Authenticator_ServiceDesc is the grpc.ServiceDesc for Authenticator service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -140,7 +173,11 @@ var Authenticator_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "RequestDHParams",
 			Handler:    _Authenticator_RequestDHParams_Handler,
 		},
+		{
+			MethodName: "AuthCheck",
+			Handler:    _Authenticator_AuthCheck_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auth/auth.proto",
+	Metadata: "proto/auth.proto",
 }

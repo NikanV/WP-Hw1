@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	pb "auth-server/auth"
+	pb "WP-Hw1/proto"
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
@@ -19,6 +19,14 @@ func makeAuthenticatorClient() (pb.AuthenticatorClient, *grpc.ClientConn) {
 		panic("Failed to dial authenticator-server! " + err.Error())
 	}
 	return pb.NewAuthenticatorClient(conn), conn
+}
+
+func makeBizServiceClient() (pb.BizServiceClient, *grpc.ClientConn) {
+	conn, err := grpc.Dial(*bizServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		panic("Failed to dial authenticator-server! " + err.Error())
+	}
+	return pb.NewBizServiceClient(conn), conn
 }
 
 func reqPQHandler(c *gin.Context) {
@@ -92,8 +100,101 @@ func reqDHParamsHandler(c *gin.Context) {
 	})
 }
 
+func authCheckHandler(c *gin.Context) {
+	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
+	if err != nil {
+		panic("Wrong message_id format! " + err.Error())
+	} else if message_id%2 != 0 || message_id <= 0 {
+		panic("Wrong message_id format! Should be even and greater than zero!")
+	}
+	nonce := c.Query("nonce")
+	server_nonce := c.Query("server_nonce")
+	if len(nonce) != 20 || len(server_nonce) != 20 {
+		panic("Wrong nonce or server_nonce format! Should be exactly 20 characters long!")
+	}
+	auth_key, err := strconv.ParseInt(c.Query("auth_key"), 10, 64)
+	if err != nil {
+		panic("Wrong auth_key format! " + err.Error())
+	}
+	client, conn := makeAuthenticatorClient()
+	defer conn.Close()
+	request := pb.ACRequest{
+		Nonce:       nonce,
+		ServerNonce: server_nonce,
+		MessageId:   message_id,
+		AuthKey:     auth_key,
+	}
+	response, err := client.AuthCheck(context.Background(), &request)
+	if err != nil {
+		panic("Failed to AuthCheck! " + err.Error())
+	}
+
+	c.JSON(200, gin.H{
+		"message_id": response.MessageId,
+		"AuthCheck":  response.AuthCheck,
+	})
+}
+
+func getUsersHandler(c *gin.Context) {
+	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
+	if err != nil {
+		panic("Wrong message_id format! " + err.Error())
+	} else if message_id%2 != 0 || message_id <= 0 {
+		panic("Wrong message_id format! Should be even and greater than zero!")
+	}
+	user_id, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil {
+		panic("Wrong user_id format! " + err.Error())
+	}
+	auth_key := c.Query("auth_key")
+	client, conn := makeBizServiceClient()
+	defer conn.Close()
+	request := pb.GetUsersRequest{
+		UserId:    user_id,
+		AuthKey:   auth_key,
+		MessageId: message_id,
+	}
+	response, err := client.GetUsers(context.Background(), &request)
+	if err != nil {
+		panic("Failed to get users! " + err.Error())
+	}
+
+	c.JSON(200, gin.H{
+		"users":      response.Users,
+		"message_id": response.MessageId,
+	})
+}
+
+func getUsersInjectionHandler(c *gin.Context) {
+	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
+	if err != nil {
+		panic("Wrong message_id format! " + err.Error())
+	} else if message_id%2 != 0 || message_id <= 0 {
+		panic("Wrong message_id format! Should be even and greater than zero!")
+	}
+	user_id := c.Query("user_id")
+	auth_key := c.Query("auth_key")
+	client, conn := makeBizServiceClient()
+	defer conn.Close()
+	request := pb.GetUsersWithSQLRequest{
+		UserId:    user_id,
+		AuthKey:   auth_key,
+		MessageId: message_id,
+	}
+	response, err := client.GetUsersWithSQL(context.Background(), &request)
+	if err != nil {
+		panic("Failed to get users with SQL injection! " + err.Error())
+	}
+
+	c.JSON(200, gin.H{
+		"users":      response.Users,
+		"message_id": response.MessageId,
+	})
+}
+
 var (
-	authServerAddr = flag.String("addr", "localhost:5052", "this is the server address")
+	authServerAddr = flag.String("authAddr", "localhost:5052", "this is the auth server address")
+	bizServerAddr  = flag.String("bizAddr", "localhost:5062", "this is the biz server address")
 )
 
 func main() {
@@ -108,6 +209,9 @@ func main() {
 
 	r.GET("/auth/reqpq", reqPQHandler)
 	r.GET("/auth/reqdh", reqDHParamsHandler)
+	r.GET("/auth/authcheck", authCheckHandler)
+	r.GET("/biz/getusers", getUsersHandler)
+	r.GET("/biz/getusersinjection", getUsersInjectionHandler)
 
 	err := r.Run(":6443")
 	if err != nil {
