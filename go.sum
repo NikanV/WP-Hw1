@@ -1,4 +1,6 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/JGLTechnologies/gin-rate-limit v1.5.4 h1:1hIaXIdGM9MZFZlXgjWJLpxaK0WHEa5MeloK49nmQsc=
+github.com/JGLTechnologies/gin-rate-limit v1.5.4/go.mod h1:mGEhNzlHEg/Tk+KH/mKylZLTfDjACnx7MVYaAlj07eU=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/bsm/ginkgo/v2 v2.7.0 h1:ItPMPH90RbmZJt5GtkcNvIRuGEdwlBItdNVoyzaNQao=
 github.com/bsm/gomega v1.26.0 h1:LhQm+AFcgV2M0WyKroMASzAzCAJVpAxQXv4SaI9a69Y=

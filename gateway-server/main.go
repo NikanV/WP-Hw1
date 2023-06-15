@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"strconv"
+	"time"
 
 	pb "WP-Hw1/proto"
 
+	rl "github.com/JGLTechnologies/gin-rate-limit"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -100,7 +102,7 @@ func reqDHParamsHandler(c *gin.Context) {
 	})
 }
 
-func authCheckHandler(c *gin.Context) {
+func authCheckHandler(c *gin.Context) bool {
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
 		panic("Wrong message_id format! " + err.Error())
@@ -129,67 +131,84 @@ func authCheckHandler(c *gin.Context) {
 		panic("Failed to AuthCheck! " + err.Error())
 	}
 
-	c.JSON(200, gin.H{
-		"message_id": response.MessageId,
-		"AuthCheck":  response.AuthCheck,
-	})
+	return response.AuthCheck
 }
 
 func getUsersHandler(c *gin.Context) {
-	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
-	if err != nil {
-		panic("Wrong message_id format! " + err.Error())
-	} else if message_id%2 != 0 || message_id <= 0 {
-		panic("Wrong message_id format! Should be even and greater than zero!")
-	}
-	user_id, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	if err != nil {
-		panic("Wrong user_id format! " + err.Error())
-	}
-	auth_key := c.Query("auth_key")
-	client, conn := makeBizServiceClient()
-	defer conn.Close()
-	request := pb.GetUsersRequest{
-		UserId:    user_id,
-		AuthKey:   auth_key,
-		MessageId: message_id,
-	}
-	response, err := client.GetUsers(context.Background(), &request)
-	if err != nil {
-		panic("Failed to get users! " + err.Error())
-	}
+	if authCheckHandler(c) {
+		message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
+		if err != nil {
+			panic("Wrong message_id format! " + err.Error())
+		} else if message_id%2 != 0 || message_id <= 0 {
+			panic("Wrong message_id format! Should be even and greater than zero!")
+		}
+		user_id, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+		if err != nil {
+			panic("Wrong user_id format! " + err.Error())
+		}
+		auth_key := c.Query("auth_key")
+		client, conn := makeBizServiceClient()
+		defer conn.Close()
+		request := pb.GetUsersRequest{
+			UserId:    user_id,
+			AuthKey:   auth_key,
+			MessageId: message_id,
+		}
+		response, err := client.GetUsers(context.Background(), &request)
+		if err != nil {
+			panic("Failed to get users! " + err.Error())
+		}
 
-	c.JSON(200, gin.H{
-		"users":      response.Users,
-		"message_id": response.MessageId,
-	})
+		c.JSON(200, gin.H{
+			"users":      response.Users,
+			"message_id": response.MessageId,
+		})
+	} else {
+		c.JSON(404, gin.H{
+			"error message": "Invalid authentication key!",
+		})
+	}
 }
 
 func getUsersInjectionHandler(c *gin.Context) {
-	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
-	if err != nil {
-		panic("Wrong message_id format! " + err.Error())
-	} else if message_id%2 != 0 || message_id <= 0 {
-		panic("Wrong message_id format! Should be even and greater than zero!")
-	}
-	user_id := c.Query("user_id")
-	auth_key := c.Query("auth_key")
-	client, conn := makeBizServiceClient()
-	defer conn.Close()
-	request := pb.GetUsersWithSQLRequest{
-		UserId:    user_id,
-		AuthKey:   auth_key,
-		MessageId: message_id,
-	}
-	response, err := client.GetUsersWithSQL(context.Background(), &request)
-	if err != nil {
-		panic("Failed to get users with SQL injection! " + err.Error())
-	}
+	if authCheckHandler(c) {
+		message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
+		if err != nil {
+			panic("Wrong message_id format! " + err.Error())
+		} else if message_id%2 != 0 || message_id <= 0 {
+			panic("Wrong message_id format! Should be even and greater than zero!")
+		}
+		user_id := c.Query("user_id")
+		auth_key := c.Query("auth_key")
+		client, conn := makeBizServiceClient()
+		defer conn.Close()
+		request := pb.GetUsersWithSQLRequest{
+			UserId:    user_id,
+			AuthKey:   auth_key,
+			MessageId: message_id,
+		}
+		response, err := client.GetUsersWithSQL(context.Background(), &request)
+		if err != nil {
+			panic("Failed to get users with SQL injection! " + err.Error())
+		}
 
-	c.JSON(200, gin.H{
-		"users":      response.Users,
-		"message_id": response.MessageId,
-	})
+		c.JSON(200, gin.H{
+			"users":      response.Users,
+			"message_id": response.MessageId,
+		})
+	} else {
+		c.JSON(404, gin.H{
+			"error message": "Invalid authentication key!",
+		})
+	}
+}
+
+func ipHandler(c *gin.Context) string {
+	return c.ClientIP()
+}
+
+func errorHandler(c *gin.Context, info rl.Info) {
+	c.String(429, "Too many requests. Try again in "+time.Until(info.ResetTime).String())
 }
 
 var (
@@ -201,17 +220,26 @@ func main() {
 	flag.Parse()
 
 	r := gin.Default()
-	r.GET("/test", func(c *gin.Context) {
+
+	store := rl.InMemoryStore(&rl.InMemoryOptions{
+		Rate:  time.Second,
+		Limit: 100,
+	})
+
+	limiter := rl.RateLimiter(store, &rl.Options{
+		ErrorHandler: errorHandler,
+		KeyFunc:      ipHandler,
+	})
+
+	r.GET("/test", limiter, func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"Message": "The gateway-server is up",
 		})
 	})
-
-	r.GET("/auth/reqpq", reqPQHandler)
-	r.GET("/auth/reqdh", reqDHParamsHandler)
-	r.GET("/auth/authcheck", authCheckHandler)
-	r.GET("/biz/getusers", getUsersHandler)
-	r.GET("/biz/getusersinjection", getUsersInjectionHandler)
+	r.GET("/auth/reqpq", limiter, reqPQHandler)
+	r.GET("/auth/reqdh", limiter, reqDHParamsHandler)
+	r.GET("/biz/getusers", limiter, getUsersHandler)
+	r.GET("/biz/getusersinjection", limiter, getUsersInjectionHandler)
 
 	err := r.Run(":6443")
 	if err != nil {
