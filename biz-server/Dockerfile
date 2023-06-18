@@ -6,7 +6,7 @@ COPY ./go.mod ./go.sum ./
 
 RUN go mod download
 
-COPY ./biz-server/server/server.go ./
+COPY ./biz-server/server.go ./
 COPY ./proto/ ./proto/
 
 RUN go build -o ./biz-server

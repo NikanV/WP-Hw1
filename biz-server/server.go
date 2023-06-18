@@ -55,7 +55,6 @@ func (c *bizServiceServer) GetUsers(ctx context.Context, in *pb.GetUsersRequest)
 		}
 		defer rows.Close()
 		for iterate := 0; rows.Next() && iterate < 100; iterate++ {
-			iterate++
 			rowValues, err := rows.Values()
 			if err != nil {
 				return nil, err
@@ -154,7 +153,7 @@ func main() {
 	}
 	for i := range users {
 		queryInsertUsers := `INSERT INTO USERS (user_id, name, family, age, 
-                   createdAt, sex) VALUES ($1, $2,$3,$4,$5,$6);`
+                   createdAt, sex) VALUES ($1,$2,$3,$4,$5,$6);`
 		if _, err := pg.db.Exec(context.Background(), queryInsertUsers, users[i].GetId(), users[i].GetName(), users[i].GetFamily(), users[i].GetAge(), users[i].GetCreatedAt(), users[i].GetSex()); err != nil {
 			fmt.Fprintf(os.Stderr, "Unable to insert data into database: %v\n", err)
 			log.Fatal(err)
