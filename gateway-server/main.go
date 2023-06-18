@@ -5,6 +5,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/swaggo/gin-swagger" // gin-swagger middleware
+	"github.com/swaggo/files" // swagger embed files
+	_ "WP-Hw1/docs"
+
 	pb "WP-Hw1/proto"
 
 	rl "github.com/JGLTechnologies/gin-rate-limit"
@@ -31,6 +35,20 @@ func makeBizServiceClient() (pb.BizServiceClient, *grpc.ClientConn) {
 	return pb.NewBizServiceClient(conn), conn
 }
 
+
+// reqpq godoc
+
+// @Summary Request PQ
+// @Description first step of registeration which we send user info.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param message_id query int true "The message ID (even and greater than zero)."
+// @Param nonce query string true "The nonce (20 characters long)."
+// @Success 200 {object} pb.PQResponse
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /auth/reqpq [get]
 func reqPQHandler(c *gin.Context) {
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
@@ -49,7 +67,6 @@ func reqPQHandler(c *gin.Context) {
 		Nonce:     nonce,
 		MessageId: message_id,
 	}
-
 	response, err := client.RequestPQ(context.Background(), &request)
 	if err != nil {
 		panic("Failed to request PQ! " + err.Error())
@@ -64,6 +81,21 @@ func reqPQHandler(c *gin.Context) {
 	})
 }
 
+// reqdh godoc
+
+// @Summary Request DH
+// @Description second step of registeration which we send auth info and public keys.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param message_id query int true "The message ID (even and greater than zero)."
+// @Param nonce query string true "The nonce (20 characters long)."
+// @Param server_nonce query string true "The server_nonce (20 characters long)."
+// @Param a query int true "public key from client"
+// @Success 200 {object} pb.DHResponse
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /auth/reqdh [get]
 func reqDHParamsHandler(c *gin.Context) {
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
@@ -134,6 +166,20 @@ func authCheckHandler(c *gin.Context) bool {
 	return response.AuthCheck
 }
 
+// getUsers godoc
+
+// @Summary get users of database.
+// @Description after checking authentication , gets the information that you desire.
+// @Tags Biz server
+// @Accept json
+// @Produce json
+// @Param user_id query int true "gets first 100 users if negetive"
+// @Param auth_key query int true "auth key"
+// @Param message_id query int true "The message ID (even and greater than zero)."
+// @Success 200 {object} pb.GetUsersResponse
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /biz/getusers [get]
 func getUsersHandler(c *gin.Context) {
 	if authCheckHandler(c) {
 		message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
@@ -170,6 +216,20 @@ func getUsersHandler(c *gin.Context) {
 	}
 }
 
+// getUsersByInjection godoc
+
+// @Summary get users of database by injection.
+// @Description after checking authentication , gets the information that you desire by injection.
+// @Tags Biz server
+// @Accept json
+// @Produce json
+// @Param user_id query string true "gets first 100 users if negetive"
+// @Param auth_key query int true "auth key"
+// @Param message_id query int true "The message ID (even and greater than zero)."
+// @Success 200 {object} pb.GetUsersResponse
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /biz/getusersinjection [get]
 func getUsersInjectionHandler(c *gin.Context) {
 	if authCheckHandler(c) {
 		message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
@@ -216,6 +276,11 @@ var (
 	bizServerAddr  = flag.String("bizAddr", "localhost:5062", "this is the biz server address")
 )
 
+
+// @title WebPrograming homework 1
+// @description a service which you can register in and get access to the users database
+// @version 1.0
+
 func main() {
 	flag.Parse()
 
@@ -240,6 +305,7 @@ func main() {
 	r.GET("/auth/reqdh", limiter, reqDHParamsHandler)
 	r.GET("/biz/getusers", limiter, getUsersHandler)
 	r.GET("/biz/getusersinjection", limiter, getUsersInjectionHandler)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	err := r.Run(":6443")
 	if err != nil {

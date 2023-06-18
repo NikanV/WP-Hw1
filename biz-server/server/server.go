@@ -55,7 +55,6 @@ func (c *bizServiceServer) GetUsers(ctx context.Context, in *pb.GetUsersRequest)
 		}
 		defer rows.Close()
 		for iterate := 0; rows.Next() && iterate < 100; iterate++ {
-			iterate++
 			rowValues, err := rows.Values()
 			if err != nil {
 				return nil, err
