@@ -193,6 +193,11 @@ func authCheckHandler(c *gin.Context) bool {
 		return false
 	}
 
+	if !response.AuthCheck {
+		c.JSON(404, gin.H{
+			"error message": "Invalid authentication key!",
+		})
+	}
 	return response.AuthCheck
 }
 
@@ -250,10 +255,6 @@ func getUsersHandler(c *gin.Context) {
 			"users":      response.Users,
 			"message_id": response.MessageId,
 		})
-	} else {
-		c.JSON(404, gin.H{
-			"error message": "Invalid authentication key!",
-		})
 	}
 }
 
@@ -304,10 +305,6 @@ func getUsersInjectionHandler(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"users":      response.Users,
 			"message_id": response.MessageId,
-		})
-	} else {
-		c.JSON(404, gin.H{
-			"error message": "Invalid authentication key!",
 		})
 	}
 }
