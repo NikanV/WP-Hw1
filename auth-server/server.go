@@ -49,7 +49,6 @@ func (c *authServer) RequestPQ(ctx context.Context, in *pb.PQRequest) (*pb.PQRes
 	client := initRedisClient()
 	defer client.Close()
 	hash := tools.Sha1_gen(nonce + server_nonce)
-	fmt.Println(hash)
 	err := client.HSet(context.Background(), hash, "p", p).Err()
 	if err != nil {
 		return nil, err

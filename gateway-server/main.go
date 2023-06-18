@@ -142,14 +142,6 @@ func authCheckHandler(c *gin.Context) bool {
 		})
 		return false
 	}
-	nonce := c.Query("nonce")
-	server_nonce := c.Query("server_nonce")
-	if len(nonce) != 20 || len(server_nonce) != 20 {
-		c.JSON(404, gin.H{
-			"message": "Wrong nonce or server_nonce format! Should be exactly 20 characters long!",
-		})
-		return false
-	}
 	auth_key, err := strconv.ParseInt(c.Query("auth_key"), 10, 64)
 	if err != nil {
 		c.JSON(404, gin.H{
@@ -171,6 +163,11 @@ func authCheckHandler(c *gin.Context) bool {
 		return false
 	}
 
+	if !response.AuthCheck {
+		c.JSON(404, gin.H{
+			"error message": "Invalid authentication key!",
+		})
+	}
 	return response.AuthCheck
 }
 
@@ -215,10 +212,6 @@ func getUsersHandler(c *gin.Context) {
 			"users":      response.Users,
 			"message_id": response.MessageId,
 		})
-	} else {
-		c.JSON(404, gin.H{
-			"error message": "Invalid authentication key!",
-		})
 	}
 }
 
@@ -256,10 +249,6 @@ func getUsersInjectionHandler(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"users":      response.Users,
 			"message_id": response.MessageId,
-		})
-	} else {
-		c.JSON(404, gin.H{
-			"error message": "Invalid authentication key!",
 		})
 	}
 }
