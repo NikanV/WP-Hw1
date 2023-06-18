@@ -85,7 +85,7 @@ func (c *authServer) RequestDHParams(ctx context.Context, in *pb.DHRequest) (*pb
 	auth_key := int64(p) % int64(math.Pow(float64(a), float64(private_key)))
 
 	client.Del(context.Background(), hash)
-	err := client.Set(context.Background(), hash, auth_key, 0).Err()
+	err := client.Set(context.Background() , strconv.Itoa(int(auth_key)) , 0 , 0).Err()
 	if err != nil {
 		return nil, err
 	}
