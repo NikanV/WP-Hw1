@@ -66,16 +66,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/WP-Hw1_proto.DHResponse"
                         }
                     },
-                    "400": {
+                    "404": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "string"
+                            "type": "json"
                         }
                     }
                 }
@@ -117,16 +111,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/WP-Hw1_proto.PQResponse"
                         }
                     },
-                    "400": {
+                    "404": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "string"
+                            "type": "json"
                         }
                     }
                 }
@@ -146,20 +134,6 @@ const docTemplate = `{
                 ],
                 "summary": "get users of database.",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The nonce (20 characters long).",
-                        "name": "nonce",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "The server_nonce (20 characters long).",
-                        "name": "server_nonce",
-                        "in": "query",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "description": "gets first 100 users if negetive",
@@ -189,16 +163,62 @@ const docTemplate = `{
                             "$ref": "#/definitions/WP-Hw1_proto.GetUsersResponse"
                         }
                     },
-                    "400": {
+                    "404": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "string"
+                            "type": "json"
+                        }
+                    }
+                }
+            }
+        },
+        "/biz/getusersinjection": {
+            "get": {
+                "description": "after checking authentication , gets the information that you desire by injection.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Biz server"
+                ],
+                "summary": "get users of database by injection.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "gets first 100 users if negetive",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "auth key",
+                        "name": "auth_key",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The message ID (even and greater than zero).",
+                        "name": "message_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/WP-Hw1_proto.GetUsersResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal server error",
+                    "404": {
+                        "description": "Bad request",
                         "schema": {
-                            "type": "string"
+                            "type": "json"
                         }
                     }
                 }

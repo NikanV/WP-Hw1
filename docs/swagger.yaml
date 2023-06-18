@@ -98,14 +98,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/WP-Hw1_proto.DHResponse'
-        "400":
+        "404":
           description: Bad request
           schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            type: string
+            type: json
       summary: Request DH
       tags:
       - Authentication
@@ -132,14 +128,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/WP-Hw1_proto.PQResponse'
-        "400":
+        "404":
           description: Bad request
           schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            type: string
+            type: json
       summary: Request PQ
       tags:
       - Authentication
@@ -149,16 +141,6 @@ paths:
       - application/json
       description: after checking authentication , gets the information that you desire.
       parameters:
-      - description: The nonce (20 characters long).
-        in: query
-        name: nonce
-        required: true
-        type: string
-      - description: The server_nonce (20 characters long).
-        in: query
-        name: server_nonce
-        required: true
-        type: string
       - description: gets first 100 users if negetive
         in: query
         name: user_id
@@ -181,15 +163,47 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/WP-Hw1_proto.GetUsersResponse'
-        "400":
+        "404":
           description: Bad request
           schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            type: string
+            type: json
       summary: get users of database.
+      tags:
+      - Biz server
+  /biz/getusersinjection:
+    get:
+      consumes:
+      - application/json
+      description: after checking authentication , gets the information that you desire
+        by injection.
+      parameters:
+      - description: gets first 100 users if negetive
+        in: query
+        name: user_id
+        required: true
+        type: string
+      - description: auth key
+        in: query
+        name: auth_key
+        required: true
+        type: integer
+      - description: The message ID (even and greater than zero).
+        in: query
+        name: message_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/WP-Hw1_proto.GetUsersResponse'
+        "404":
+          description: Bad request
+          schema:
+            type: json
+      summary: get users of database by injection.
       tags:
       - Biz server
 swagger: "2.0"

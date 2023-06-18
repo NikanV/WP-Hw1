@@ -46,8 +46,7 @@ func makeBizServiceClient() (pb.BizServiceClient, *grpc.ClientConn) {
 // @Param message_id query int true "The message ID (even and greater than zero)."
 // @Param nonce query string true "The nonce (20 characters long)."
 // @Success 200 {object} pb.PQResponse
-// @Failure 400 {string} string "Bad request"
-// @Failure 500 {string} string "Internal server error"
+// @Failure 404 {json} json "Bad request"
 // @Router /auth/reqpq [get]
 func reqPQHandler(c *gin.Context) {
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
@@ -105,8 +104,7 @@ func reqPQHandler(c *gin.Context) {
 // @Param server_nonce query string true "The server_nonce (20 characters long)."
 // @Param a query int true "public key from client"
 // @Success 200 {object} pb.DHResponse
-// @Failure 400 {string} string "Bad request"
-// @Failure 500 {string} string "Internal server error"
+// @Failure 404 {json} json "Bad request"
 // @Router /auth/reqdh [get]
 func reqDHParamsHandler(c *gin.Context) {
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
@@ -174,14 +172,6 @@ func authCheckHandler(c *gin.Context) bool {
 		})
 		return false
 	}
-	nonce := c.Query("nonce")
-	server_nonce := c.Query("server_nonce")
-	if len(nonce) != 20 || len(server_nonce) != 20 {
-		c.JSON(404, gin.H{
-			"message": "Wrong nonce or server_nonce format! Should be exactly 20 characters long!",
-		})
-		return false
-	}
 	auth_key, err := strconv.ParseInt(c.Query("auth_key"), 10, 64)
 	if err != nil {
 		c.JSON(404, gin.H{
@@ -217,8 +207,7 @@ func authCheckHandler(c *gin.Context) bool {
 // @Param auth_key query int true "auth key"
 // @Param message_id query int true "The message ID (even and greater than zero)."
 // @Success 200 {object} pb.GetUsersResponse
-// @Failure 400 {string} string "Bad request"
-// @Failure 500 {string} string "Internal server error"
+// @Failure 404 {json} json "Bad request"
 // @Router /biz/getusers [get]
 func getUsersHandler(c *gin.Context) {
 	if authCheckHandler(c) {
@@ -279,8 +268,7 @@ func getUsersHandler(c *gin.Context) {
 // @Param auth_key query int true "auth key"
 // @Param message_id query int true "The message ID (even and greater than zero)."
 // @Success 200 {object} pb.GetUsersResponse
-// @Failure 400 {string} string "Bad request"
-// @Failure 500 {string} string "Internal server error"
+// @Failure 404 {json} json "Bad request"
 // @Router /biz/getusersinjection [get]
 func getUsersInjectionHandler(c *gin.Context) {
 	if authCheckHandler(c) {
