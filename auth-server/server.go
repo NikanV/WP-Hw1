@@ -80,12 +80,20 @@ func (c *authServer) RequestDHParams(ctx context.Context, in *pb.DHRequest) (*pb
 	client := initRedisClient()
 	defer client.Close()
 
-	p, _ := strconv.ParseInt(client.HGet(context.Background(), hash, "p").Val(), 10, 64)
-	g, _ := strconv.ParseInt(client.HGet(context.Background(), hash, "g").Val(), 10, 64)
+	redis_p, err := client.HGet(context.Background(), hash, "p").Result()
+	if err == redis.Nil {
+		return nil, err
+	}
+	redis_g, err := client.HGet(context.Background(), hash, "g").Result()
+	if err == redis.Nil {
+		return nil, err
+	}
+	p, _ := strconv.ParseInt(redis_p, 10, 64)
+	g, _ := strconv.ParseInt(redis_g, 10, 64)
 	auth_key := int64(p) % int64(math.Pow(float64(a), float64(private_key)))
 
 	client.Del(context.Background(), hash)
-	err := client.Set(context.Background() , strconv.Itoa(int(auth_key)) , 0 , 0).Err()
+	err = client.Set(context.Background(), strconv.Itoa(int(auth_key)), 0, 0).Err()
 	if err != nil {
 		return nil, err
 	}

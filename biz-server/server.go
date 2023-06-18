@@ -37,7 +37,10 @@ func (c *bizServiceServer) GetUsers(ctx context.Context, in *pb.GetUsersRequest)
 		defer rows.Close()
 
 		for rows.Next() {
-			rowValues, _ := rows.Values()
+			rowValues, err := rows.Values()
+			if err != nil {
+				return nil, err
+			}
 			users_response = append(users_response, &pb.USER{
 				Id:        int64(rowValues[0].(int32)),
 				Name:      rowValues[1].(string),
