@@ -52,13 +52,22 @@ func makeBizServiceClient() (pb.BizServiceClient, *grpc.ClientConn) {
 func reqPQHandler(c *gin.Context) {
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
-		panic("Wrong message_id format! " + err.Error())
+		c.JSON(404, gin.H{
+			"message": "Wrong message_id format! " + err.Error(),
+		})
+		return
 	} else if message_id%2 != 0 || message_id <= 0 {
-		panic("Wrong message_id format! Should be even and greater than zero!")
+		c.JSON(404, gin.H{
+			"message": "Wrong message_id format! Should be even and greater than zero!",
+		})
+		return
 	}
 	nonce := c.Query("nonce")
 	if len(nonce) != 20 {
-		panic("Wrong nonce format! Should be exactly 20 characters long!")
+		c.JSON(404, gin.H{
+			"message": "Wrong nonce format! Should be exactly 20 characters long!",
+		})
+		return
 	}
 
 	client, conn := makeAuthenticatorClient()
@@ -69,7 +78,10 @@ func reqPQHandler(c *gin.Context) {
 	}
 	response, err := client.RequestPQ(context.Background(), &request)
 	if err != nil {
-		panic("Failed to request PQ! " + err.Error())
+		c.JSON(502, gin.H{
+			"message": "Failed to request PQ! " + err.Error(),
+		})
+		return
 	}
 
 	c.JSON(200, gin.H{
@@ -99,18 +111,30 @@ func reqPQHandler(c *gin.Context) {
 func reqDHParamsHandler(c *gin.Context) {
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
-		panic("Wrong message_id format! " + err.Error())
+		c.JSON(404, gin.H{
+			"message": "Wrong message_id format! " + err.Error(),
+		})
+		return
 	} else if message_id%2 != 0 || message_id <= 0 {
-		panic("Wrong message_id format! Should be even and greater than zero!")
+		c.JSON(404, gin.H{
+			"message": "Wrong message_id format! Should be even and greater than zero!",
+		})
+		return
 	}
 	a, err := strconv.ParseInt(c.Query("a"), 10, 64)
 	if err != nil {
-		panic("Wrong A format! " + err.Error())
+		c.JSON(404, gin.H{
+			"message": "Wrong A format! " + err.Error(),
+		})
+		return
 	}
 	nonce := c.Query("nonce")
 	server_nonce := c.Query("server_nonce")
 	if len(nonce) != 20 || len(server_nonce) != 20 {
-		panic("Wrong nonce or server_nonce format! Should be exactly 20 characters long!")
+		c.JSON(404, gin.H{
+			"message": "Wrong nonce or server_nonce format! Should be exactly 20 characters long!",
+		})
+		return
 	}
 
 	client, conn := makeAuthenticatorClient()
@@ -123,7 +147,10 @@ func reqDHParamsHandler(c *gin.Context) {
 	}
 	response, err := client.RequestDHParams(context.Background(), &request)
 	if err != nil {
-		panic("Failed to request DHParams! " + err.Error())
+		c.JSON(502, gin.H{
+			"message": "Failed to request DHParams! " + err.Error(),
+		})
+		return
 	}
 
 	c.JSON(200, gin.H{
@@ -137,30 +164,43 @@ func reqDHParamsHandler(c *gin.Context) {
 func authCheckHandler(c *gin.Context) bool {
 	message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 	if err != nil {
-		panic("Wrong message_id format! " + err.Error())
+		c.JSON(404, gin.H{
+			"message": "Wrong message_id format! " + err.Error(),
+		})
+		return false
 	} else if message_id%2 != 0 || message_id <= 0 {
-		panic("Wrong message_id format! Should be even and greater than zero!")
+		c.JSON(404, gin.H{
+			"message": "Wrong message_id format! Should be even and greater than zero!",
+		})
+		return false
 	}
 	nonce := c.Query("nonce")
 	server_nonce := c.Query("server_nonce")
 	if len(nonce) != 20 || len(server_nonce) != 20 {
-		panic("Wrong nonce or server_nonce format! Should be exactly 20 characters long!")
+		c.JSON(404, gin.H{
+			"message": "Wrong nonce or server_nonce format! Should be exactly 20 characters long!",
+		})
+		return false
 	}
 	auth_key, err := strconv.ParseInt(c.Query("auth_key"), 10, 64)
 	if err != nil {
-		panic("Wrong auth_key format! " + err.Error())
+		c.JSON(404, gin.H{
+			"message": "Wrong auth_key format! " + err.Error(),
+		})
+		return false
 	}
 	client, conn := makeAuthenticatorClient()
 	defer conn.Close()
 	request := pb.ACRequest{
-		Nonce:       nonce,
-		ServerNonce: server_nonce,
-		MessageId:   message_id,
-		AuthKey:     auth_key,
+		MessageId: message_id,
+		AuthKey:   auth_key,
 	}
 	response, err := client.AuthCheck(context.Background(), &request)
 	if err != nil {
-		panic("Failed to AuthCheck! " + err.Error())
+		c.JSON(502, gin.H{
+			"message": "Failed to AuthCheck! " + err.Error(),
+		})
+		return false
 	}
 
 	return response.AuthCheck
@@ -184,13 +224,22 @@ func getUsersHandler(c *gin.Context) {
 	if authCheckHandler(c) {
 		message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 		if err != nil {
-			panic("Wrong message_id format! " + err.Error())
+			c.JSON(404, gin.H{
+				"message": "Wrong message_id format! " + err.Error(),
+			})
+			return
 		} else if message_id%2 != 0 || message_id <= 0 {
-			panic("Wrong message_id format! Should be even and greater than zero!")
+			c.JSON(404, gin.H{
+				"message": "Wrong message_id format! Should be even and greater than zero!",
+			})
+			return
 		}
 		user_id, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 		if err != nil {
-			panic("Wrong user_id format! " + err.Error())
+			c.JSON(404, gin.H{
+				"message": "Wrong user_id format! " + err.Error(),
+			})
+			return
 		}
 		auth_key := c.Query("auth_key")
 		client, conn := makeBizServiceClient()
@@ -202,7 +251,10 @@ func getUsersHandler(c *gin.Context) {
 		}
 		response, err := client.GetUsers(context.Background(), &request)
 		if err != nil {
-			panic("Failed to get users! " + err.Error())
+			c.JSON(502, gin.H{
+				"message": "Failed to get users! " + err.Error(),
+			})
+			return
 		}
 
 		c.JSON(200, gin.H{
@@ -234,9 +286,15 @@ func getUsersInjectionHandler(c *gin.Context) {
 	if authCheckHandler(c) {
 		message_id, err := strconv.ParseInt(c.Query("message_id"), 10, 64)
 		if err != nil {
-			panic("Wrong message_id format! " + err.Error())
+			c.JSON(404, gin.H{
+				"message": "Wrong message_id format! " + err.Error(),
+			})
+			return
 		} else if message_id%2 != 0 || message_id <= 0 {
-			panic("Wrong message_id format! Should be even and greater than zero!")
+			c.JSON(404, gin.H{
+				"message": "Wrong message_id format! Should be even and greater than zero!",
+			})
+			return
 		}
 		user_id := c.Query("user_id")
 		auth_key := c.Query("auth_key")
@@ -249,7 +307,10 @@ func getUsersInjectionHandler(c *gin.Context) {
 		}
 		response, err := client.GetUsersWithSQL(context.Background(), &request)
 		if err != nil {
-			panic("Failed to get users with SQL injection! " + err.Error())
+			c.JSON(502, gin.H{
+				"message": "Failed to get users with SQL injection! " + err.Error(),
+			})
+			return
 		}
 
 		c.JSON(200, gin.H{
@@ -261,14 +322,6 @@ func getUsersInjectionHandler(c *gin.Context) {
 			"error message": "Invalid authentication key!",
 		})
 	}
-}
-
-func ipHandler(c *gin.Context) string {
-	return c.ClientIP()
-}
-
-func errorHandler(c *gin.Context, info rl.Info) {
-	c.String(429, "Too many requests. Try again in "+time.Until(info.ResetTime).String())
 }
 
 var (
@@ -287,13 +340,15 @@ func main() {
 	r := gin.Default()
 
 	store := rl.InMemoryStore(&rl.InMemoryOptions{
-		Rate:  time.Second,
-		Limit: 100,
+		Rate:  time.Second * 2,
+		Limit: 3,
 	})
 
 	limiter := rl.RateLimiter(store, &rl.Options{
-		ErrorHandler: errorHandler,
-		KeyFunc:      ipHandler,
+		ErrorHandler: func(c *gin.Context, info rl.Info) {
+			c.String(429, "Too many requests. Try again in "+time.Until(info.ResetTime).String())
+		},
+		KeyFunc: func(c *gin.Context) string { return c.ClientIP() },
 	})
 
 	r.GET("/test", limiter, func(c *gin.Context) {
