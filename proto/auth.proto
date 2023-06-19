@@ -36,8 +36,6 @@ message DHResponse {
 }
 
 message ACRequest {
-    string nonce = 1; // the exact nonce from the clients request
-    string server_nonce = 2; // generated in the pc
     int64 message_id = 3; //even and greater than zero
     int64 auth_key = 4; //the key that server and client agreed upon
 }
