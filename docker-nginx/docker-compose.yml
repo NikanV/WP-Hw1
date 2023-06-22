@@ -1,13 +1,14 @@
 version: '3.8'
 services:
-  webserver:
+  nginx:
     image: nginx:latest
     restart: always
-   # network_mode: "host"
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx/conf/:/etc/nginx/conf.d/:ro
       - ./cert/:/etc/nginx/ssl/:ro
-
+    # network_mode: "host"
+    extra_hosts:
+     - "host.docker.internal:localhost"
