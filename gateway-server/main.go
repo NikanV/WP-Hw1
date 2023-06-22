@@ -5,13 +5,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/swaggo/gin-swagger" // gin-swagger middleware
-	"github.com/swaggo/files" // swagger embed files
 	_ "WP-Hw1/docs"
+
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 
 	pb "WP-Hw1/proto"
 
-	rl "github.com/JGLTechnologies/gin-rate-limit"
+	tools "WP-Hw1/tools"
+
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -35,11 +37,10 @@ func makeBizServiceClient() (pb.BizServiceClient, *grpc.ClientConn) {
 	return pb.NewBizServiceClient(conn), conn
 }
 
-
 // reqpq godoc
 
 // @Summary Request PQ
-// @Description first step of registeration which we send user info.
+// @Description first step of registration which we send user info.
 // @Tags Authentication
 // @Accept json
 // @Produce json
@@ -95,7 +96,7 @@ func reqPQHandler(c *gin.Context) {
 // reqdh godoc
 
 // @Summary Request DH
-// @Description second step of registeration which we send auth info and public keys.
+// @Description second step of registration which we send auth info and public keys.
 // @Tags Authentication
 // @Accept json
 // @Produce json
@@ -208,7 +209,7 @@ func authCheckHandler(c *gin.Context) bool {
 // @Tags Biz server
 // @Accept json
 // @Produce json
-// @Param user_id query int true "gets first 100 users if negetive"
+// @Param user_id query int true "gets first 100 users if negative"
 // @Param auth_key query int true "auth key"
 // @Param message_id query int true "The message ID (even and greater than zero)."
 // @Success 200 {object} pb.GetUsersResponse
@@ -265,7 +266,7 @@ func getUsersHandler(c *gin.Context) {
 // @Tags Biz server
 // @Accept json
 // @Produce json
-// @Param user_id query string true "gets first 100 users if negetive"
+// @Param user_id query string true "gets first 100 users if negative"
 // @Param auth_key query int true "auth key"
 // @Param message_id query int true "The message ID (even and greater than zero)."
 // @Success 200 {object} pb.GetUsersResponse
@@ -314,8 +315,7 @@ var (
 	bizServerAddr  = flag.String("bizAddr", "localhost:5062", "this is the biz server address")
 )
 
-
-// @title WebPrograming homework 1
+// @title WebProgramming homework 1
 // @description a service which you can register in and get access to the users database
 // @version 1.0
 
@@ -324,13 +324,14 @@ func main() {
 
 	r := gin.Default()
 
-	store := rl.InMemoryStore(&rl.InMemoryOptions{
-		Rate:  time.Second * 2,
-		Limit: 3,
+	store := tools.InMemoryStore(&tools.InMemoryOptions{
+		Rate:      time.Second,
+		Limit:     100,
+		ResetTime: time.Hour * 24,
 	})
 
-	limiter := rl.RateLimiter(store, &rl.Options{
-		ErrorHandler: func(c *gin.Context, info rl.Info) {
+	limiter := tools.RateLimiter(store, &tools.Options{
+		ErrorHandler: func(c *gin.Context, info tools.Info) {
 			c.String(429, "Too many requests. Try again in "+time.Until(info.ResetTime).String())
 		},
 		KeyFunc: func(c *gin.Context) string { return c.ClientIP() },
