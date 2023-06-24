@@ -10,5 +10,8 @@ services:
       - ./nginx/conf/:/etc/nginx/conf.d/:ro
       - ./cert/:/etc/nginx/ssl/:ro
     # network_mode: "host"
-    extra_hosts:
-     - "host.docker.internal:localhost"
+
+networks: 
+  default:
+    name: serversdb
+    external: true
