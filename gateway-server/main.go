@@ -311,8 +311,8 @@ func getUsersInjectionHandler(c *gin.Context) {
 }
 
 var (
-	authServerAddr = flag.String("authAddr", "localhost:5052", "this is the auth server address")
-	bizServerAddr  = flag.String("bizAddr", "localhost:5062", "this is the biz server address")
+	authServerAddr = flag.String("authAddr", "host.docker.internal:5052", "this is the auth server address")
+	bizServerAddr  = flag.String("bizAddr", "host.docker.internal:5062", "this is the biz server address")
 )
 
 // @title WebProgramming homework 1

@@ -18,14 +18,8 @@ services:
       - POSTGRES_DB=postgres
     ports:
       - "5432:5432"
-
-  # pgadmin:
-  #   image: dpage/pgadmin4
-  #   environment:
-  #     - PGADMIN_DEFAULT_EMAIL=postgres@sql.net
-  #     - PGADMIN_DEFAULT_PASSWORD=postgres
-  #   ports:
-  #     - "3657:80"
+    volumes: 
+      - ./db:/var/lib/postgresql/data/
   
   auth:
     image: auth-server
