@@ -8,6 +8,8 @@ RUN go mod download
 
 COPY ./gateway-server/main.go ./
 COPY ./proto/ ./proto/
+COPY ./tools/ ./tools/
+COPY ./docs/ ./docs/
 
 RUN go build -o ./gateway-server
 

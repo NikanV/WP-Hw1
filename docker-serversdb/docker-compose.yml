@@ -1,0 +1,49 @@
+version: '3.8'
+services:
+  cache:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - ./redis/cache/:/data/
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes: 
+      - ./postgresql/db:/var/lib/postgresql/data/
+  
+  auth:
+    image: auth-server
+    restart: always
+    ports:
+      - "5052:5052"
+    depends_on:
+      - cache
+
+  biz:
+    image: biz-server
+    restart: always
+    ports:
+      - "5062:5062"
+    depends_on:
+      - postgres
+
+  gateway:
+    image: gateway-server
+    restart: always
+    ports:
+      - "6443:6443"
+
+networks: 
+  default: 
+    name: serversdb
+    external: true

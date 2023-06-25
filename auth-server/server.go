@@ -109,7 +109,7 @@ func (c *authServer) RequestDHParams(ctx context.Context, in *pb.DHRequest) (*pb
 
 func initRedisClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "host.docker.internal:6379",
 		Password: "",
 		DB:       0,
 	})
@@ -127,9 +127,7 @@ var (
 func main() {
 	flag.Parse()
 
-	initRedisClient()
-
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", *port))
 	if err != nil {
 		log.Fatalf("Failed to listen! %v", err)
 	} else {
