@@ -19,7 +19,7 @@ services:
     ports:
       - "5432:5432"
     volumes: 
-      - ./db:/var/lib/postgresql/data/
+      - ./postgresql/db:/var/lib/postgresql/data/
   
   auth:
     image: auth-server

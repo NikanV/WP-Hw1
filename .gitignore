@@ -19,3 +19,7 @@
 
 # Go workspace file
 go.work
+
+# databases files
+docker-servsersdb/postgresql/
+docker-servsersdb/cache/
