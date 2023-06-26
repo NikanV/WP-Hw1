@@ -1,7 +1,6 @@
 import random
 import string
 import sys
-
 import grpc
 from locust import User, between, task, TaskSet, constant
 
@@ -38,7 +37,7 @@ class GrpcUser(User):
         request = pb2.DHRequest()
         request.nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
         request.server_nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
-        request.message_id = random.randint(1, 100)
+        request.message_id = self.get_even()
         request.a = random.randint(1, 100)
 
         response = self.stub.RequestDHParams(request)
@@ -48,8 +47,6 @@ class GrpcUser(User):
     @task
     def auth_check(self):
         request = pb2.ACRequest()
-        request.nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
-        request.server_nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
         request.message_id = random.randint(1, 100)
         request.auth_key = random.randint(1, 100)
 
