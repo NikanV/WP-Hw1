@@ -32,3 +32,9 @@ Use this commands in `docker-serversdb` and `docker-nginx` directories in order 
 ```bash
 docker compose up -d
 ```
+
+Use this commands in `docker-postgresql` directory in order to run the container and load up the database :
+
+```bash
+docker compose up --build
+```
