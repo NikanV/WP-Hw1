@@ -129,7 +129,7 @@ var (
 )
 
 const (
-	db_host = "localhost"
+	db_host = "host.docker.internal"
 	db_port = 5432
 	db_user = "postgres"
 	db_pass = "postgres"
@@ -163,7 +163,7 @@ func main() {
 		}
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", *port))
 	if err != nil {
 		log.Fatalf("Failed to listen! %v", err)
 	} else {

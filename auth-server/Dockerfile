@@ -7,8 +7,8 @@ COPY ./go.mod ./go.sum ./
 RUN go mod download
 
 COPY ./auth-server/server.go ./
-COPY ./tools/ ./tools/
 COPY ./proto/ ./proto/
+COPY ./tools/ ./tools/
 
 RUN go build -o ./auth-server
 

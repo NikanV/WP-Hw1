@@ -54,7 +54,7 @@ func readFile(fname string) (nums []int, err error) {
 
 func Random_Prime() int {
 	if primes == nil {
-		primes, _ = readFile("../tools/prime.txt")
+		primes, _ = readFile("./tools/prime.txt")
 	}
 	return primes[seededRand.Intn(len(primes))]
 }
