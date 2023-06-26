@@ -1,44 +1,18 @@
 import random
-from locust import User, task, between
-import grpc
+import string
 import sys
+
+import grpc
+from locust import User, between, task, TaskSet, constant
+
 sys.path.append("../../proto")
-import biz_pb2
-import biz_pb2_grpc
+import biz_pb2 as pb2
+import biz_pb2_grpc as pb2_grpc
 
-class GrpcInterceptor(grpc.UnaryUnaryClientInterceptor):
-    def intercept_unary_unary(self, continuation, client_call_details, request):
-        print(f"Intercepting gRPC method: {client_call_details.method}")
-        print(f"Request: {request}")
 
-        response = continuation(client_call_details, request)
-
-        print(f"Response: {response}")
-
-        return response
-
-class GrpcClient:
-    def __init__(self, host):
-        interceptors = [GrpcInterceptor()]
-        channel = grpc.insecure_channel(host)
-        self.channel = grpc.intercept_channel(channel, *interceptors)
-        self.stub = biz_pb2_grpc.BizServiceStub(self.channel)
-
-    def get_users(self, user_id, auth_key, message_id):
-        request = biz_pb2.GetUsersRequest(
-            user_id=user_id,
-            auth_key=auth_key,
-            message_id=message_id
-        )
-        return self.stub.GetUsers(request)
-
-class GrpcLocust(User):
-    host = "localhost:5062"
+class GrpcUser(User):
     wait_time = between(1, 5)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.client = GrpcClient(self.host)
+    num_requests = 0
 
     def get_odd(self):
         num = random.randint(1, 100)
@@ -46,11 +20,46 @@ class GrpcLocust(User):
             num = random.randint(1, 100)
         return num
 
+    def on_start(self):
+        channel = grpc.insecure_channel('localhost:5062')
+        self.stub = pb2_grpc.BizServiceStub(channel)
+
     @task
     def get_users(self):
-        user_id = random.choice([5263, 5303, 9649])
-        auth_key = "authKey"
-        message_id = self.get_odd()
+        request = pb2.GetUsersRequest()
+        request.user_id = random.choice([5263, 5303, 9649])
+        request.auth_key = 'authkey'
+        request.message_id = self.get_odd()
 
-        response = self.client.get_users(user_id, auth_key, message_id)
-        print(f"Received response: {response}")
+        response = self.stub.GetUsers(request)
+        self.num_requests += 1
+
+        print(f"Number of requests: {self.num_requests}")
+
+        print(response)
+
+
+class GrpcUserTasks(TaskSet):
+    tasks = {GrpcUser: 1}
+
+
+class GrpcUserTestRunner(TaskSet):
+    task_set = GrpcUserTasks
+    wait_time = constant(0)
+
+
+class GrpcUserLocust(User):
+    host = ''
+    task_set = GrpcUserTestRunner
+
+    def __init__(self):
+        super().__init__()
+        self.client = None
+
+    def on_start(self):
+        self.client = grpc.insecure_channel('localhost:5062')
+
+    def on_stop(self):
+        if self.client:
+            self.client.close()
+
