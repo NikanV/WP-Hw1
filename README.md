@@ -3,11 +3,16 @@ In order to use HTTPS with nginx you can use the [MKCERT](https://github.com/Fil
 
 Use the commands below from the root directory to setup your environment for the project
 
-Compiling the `.proto` files :
+Compiling the go `.proto` files :
 ```bash
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
     proto/*.proto
+```
+
+Compiling the python `.proto` files :
+```bash
+python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. *.proto
 ```
 
 Compiling the `swagger` files :
@@ -31,11 +36,4 @@ Use this commands in `docker-serversdb` and `docker-nginx` directories in order 
 
 ```bash
 docker compose up -d
-```
-
-
-Use this commands in `docker-postgresql` directory in order to run the containers for postgres database :
-
-```bash
-docker compose up --build
 ```

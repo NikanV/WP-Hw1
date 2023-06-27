@@ -23,3 +23,5 @@ go.work
 # databases files
 postgresql/
 redis/
+
+__pycache__/
